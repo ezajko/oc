@@ -1,0 +1,9 @@
+---
+- hosts: sms
+  gather_facts: yes
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  roles:
+    - freeipa_wrapper # wrapps freeipa role
+    - xcat
