@@ -1,0 +1,24 @@
+changed: false
+connection: close
+content_encoding: identity
+content_length: '310'
+content_type: application/json
+cookies: {locale: en_US}
+cookies_string: locale=en_US
+date: Mon, 21 Oct 2019 19:20:21 GMT
+elapsed: 0
+failed: false
+json: {access_token: 69DyCCFBIQ9fqwE4LrWJRFjo2lsY16LpXNJnZxZ5sx7n1oJLb8oNQNQj1dt6Tzih_WmhJb6YtKVwaOwBT1e0iw,
+  exp: '1572290420000', scope: 'ovirt-app-api ovirt-ext=token-info:authz-search ovirt-ext=token-info:public-authz-search
+    ovirt-ext=token-info:validate ovirt-ext=token:password-access', token_type: bearer}
+msg: OK (310 bytes)
+redirected: false
+server: Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips
+set_cookie: locale=en_US; path=/; secure; HttpOnly; Max-Age=2147483647; Expires=Sat,
+  08-Nov-2087 22:34:28 GMT
+status: 200
+url: https://ovirt.local.versatushpc.com.br/ovirt-engine/sso/oauth/token
+vary: Accept-Encoding
+x_content_type_options: NOSNIFF
+x_frame_options: SAMEORIGIN
+x_xss_protection: 1; MODE=BLOCK

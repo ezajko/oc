@@ -1,0 +1,10 @@
+*.retry
+*.swp
+deploy.log
+**/__pycache__/*
+answers*
+nodes.yml
+**/*~
+**/.#*
+**/#*#
+.mypy_cache/*

@@ -1,0 +1,11 @@
+- name: xCAT Setup site
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t site domain={{ domain_name }} \
+      master={{ sms_ip }} \
+      nameservers={{ sms_ip }} \
+      dhcpinterfaces={{ sms_eth_internal }} \
+      externaldns=1 \
+      FQDNfirst=1 \
+      cleanupxcatpost=1
+

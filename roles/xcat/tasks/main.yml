@@ -1,0 +1,8 @@
+- include_tasks: '{{ step }}.yml'
+  loop_control:
+    loop_var: step
+  loop:
+  - install
+  - site
+  - network
+  - password

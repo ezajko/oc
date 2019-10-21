@@ -71,9 +71,5 @@ ipaserver_reverse_zones: ['{{ sms_ip | reverse_name }}']
 ipaserver_auto_forwarders: yes
 ipaclient_mkhomedir: yes
 
-freeipa_enabled: '{{ target }} == "cluster"'
-
-
-
 # Test avoid early failures to make running multiple times better to test
-testing: no
+test: no

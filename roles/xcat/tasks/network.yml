@@ -1,0 +1,48 @@
+- name: Remove all xCAT networks
+  shell: |
+    /opt/xcat/bin/lsdef -t network | awk '{print $1}' | xargs -n1 /opt/xcat/bin/rmdef -t network
+  ignore_errors: yes
+
+- name: Create management network name
+  shell: |
+    /opt/xcat/bin/mkdef -t network -o management \
+      net={{ sms_network.split('/')[0] }} \
+      mask={{ sms_network | ipaddr('netmask') }} \
+      mgtifname={{ sms_eth_internal }} \
+      gateway='<xcatmaster>'
+  ignore_errors: yes
+
+- name: Create service network
+  shell: |
+    source /etc/profile.d/xcat.sh
+    mkdef -t network -o service \
+      mask={{ service_network | ipaddr('netmask') }} \
+      net={{ service_network.split('/')[0] }}
+  ignore_errors: yes
+
+- name: Create application network
+  when: ib_stack != "none"
+  shell: |
+    source /etc/profile.d/xcat.sh
+    mkdef -t network -o application \
+      mask={{ ib_network | ipaddr('netmask') }} \
+      net={{ ib_network.split('/')[0] }}
+  ignore_errors: yes
+
+# xCAT role - network
+- name: Setup dynamicrange
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t network management \
+      dynamicrange={{ xcat_dhcp_dynamicrange }}
+
+- name: makedhcp
+  shell: |
+    source /etc/profile.d/xcat.sh
+    makedhcp -n
+
+- name: Restart DHCP server
+  systemd:
+    name: dhcpd
+    state: restarted
+    enabled: true

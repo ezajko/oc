@@ -1,0 +1,5 @@
+[sms]
+172.21.1.64 ansible_user=root
+
+[ovirtserver]
+ovirt.local.versatushpc.com.br

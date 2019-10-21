@@ -1,0 +1,121 @@
+---
+- name: cluster_name
+  prompt: Hostname?
+  default: headnode
+  private: no
+
+- name: domain_name
+  prompt: Domain name?
+  default: cluster.example.com
+  private: no
+
+- name: ipaadmin_password
+  prompt: FreeIPA admin password
+  private: yes
+  validate:
+    - rule: len(answer) > 8
+      message: Message need to be greater than 8 in length
+
+- name: ipadm_password
+  private: yes
+  validate:
+    - rule: len(answer) > 8
+      message: Message need to be greater than 8 in length
+
+  prompt: FreeIPA Directory Manager password
+  help: |
+    FreeIPA Directory Manager password
+
+    It uses the same password as admin password entered before. This is used
+    for authenticating to LDAP.
+
+- name: nodes_prefix
+  prompt: Node prefix?
+  default: node
+  private: no
+
+- name: nodes_separator
+  prompt: Node name separtor (optional)
+  private: no
+  required: no
+
+- name: nodes_padding
+  prompt: Node name padding?
+  default: 3
+  private: no
+
+- name: sms_eth_external
+  prompt: External interface?
+  private: no
+  default: eth0
+
+- name: sms_eth_internal
+  prompt: Internal interface?
+  private: no
+  default: eth1
+
+- name: sms_network
+  prompt: Management network?
+  default: '172.26.0.0/16'
+  private: no
+  help: |
+    Management network is the primary network. Is the one by
+    which nodes boot and where services like DHCP, DNS, TFTP
+    talk.
+
+- name: sms_ip
+  prompt: Head node management network internal IP?
+  default_template: sms_network | ipaddr('last_usable')
+  private: no
+
+- name: sms_network_ip_start
+  prompt: Management network first node IP address
+  default_template: sms_network | ipaddr('next_usable')
+  private: no
+  help: |
+    This is the Management Network first node IP address. Remaning nodes
+    will be addressed by subsequent address.
+
+    Expects an IP in the form 10.1.0.1
+
+- name: xcat_dhcp_dynamicrange
+  prompt: xCAT DHCP Dynamic range?
+  default_template: "{{ sms_network | next_nth_usable(192*256) }}-{{ sms_network | next_nth_usable(192*256+255) }}"
+  private: no
+  help: |
+    Dynamic range used for xCAT during node discovery.
+
+    Expects a IP range like 1.1.1.1-1.1.1.10
+
+- name: service_network
+  prompt: Enter the service network
+  help: |
+    This is Service Network. Is the network used for BMC services and alike. It
+    expects to receive a CIDR notation address like 10.1.0.0/16. The network address
+    for the nodes are inferred from this network, starting from 10.1.0.2 up to
+    as many as nodes are defined on cluster.csv
+  default: 172.25.0.0/16
+  private: no
+
+- name: service_network_ip_start
+  prompt: Service network first node IP address
+  default_template: service_network | ipaddr('next_usable')
+  private: no
+  help: |
+    This is BMC address of the first node. The reimaing nodes
+    will be named with subsequent IP address.
+
+    Expects an IP address like 10.2.0.1
+
+- name: ipmi_user
+  private: no
+  default: ADMIN
+  prompt: What is the default IPMI username
+
+- name: ipmi_password
+  private: yes
+  prompt: IPMI default password
+  help: |
+    This can be overriden by node basis. The password
+    is setup for IPMI connection together with IPMI username
+    asked before
