@@ -1,0 +1,79 @@
+vydog_root: /opt/versatushpc/vydog/
+iso_path: /root/
+centos_iso: CentOS-7-x86_64-DVD-1810.iso
+
+# Centos DVD baseurl
+centos_dvd_mirror_baseurl: http://linorg.usp.br/CentOS/7/isos/x86_64/
+# Centos DVD checksum (sha256)
+centos_dvd_mirror_sha256: "6d44331cc4f6c506c7bbe9feb8468fad6c51a88ca1393ca6b8b486ea04bec3c1"
+
+ohpc_repo_path: /etc/yum.repos.d/OpenHPC.repo
+xcat_profile: /etc/profile.d/xcat.sh
+chroot: /install/netboot/centos7.6/x86_64/compute/rootimg/
+genimage_name: centos7.6-x86_64-netboot-compute
+synclist_path: "/install/custom/netboot/"
+csvfile: "{{ lookup('file', 'cluster.csv') }}"
+vhpc_repo_url: http://pkgs.versatushpc.com.br/centos/7/versatushpc-config/x86_64/versatushpc-repo-centos7-config-0.4.1-1.noarch.rpm
+
+#ohpc_repo_url: https://github.com/openhpc/ohpc/releases/download/v1.3.GA/ohpc-release-1.3-1.el7.x86_64.rpm
+#ohpc_repo_url: http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/x86_64/ohpc-release-1.3-1.el7.x86_64.rpm
+ohpc_repo_url: http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7/x86_64/ohpc-release-1.3-2.el7.x86_64.rpm
+cuda_repo_url: http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-9.1.85-1.x86_64.rpm
+xcat_core_repo_url: https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xCAT-core.repo
+xcat_dep_repo_url: https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
+goxcat_url: https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat
+
+essential_packages:
+  - "vim"
+  - "screen"
+  - "ntp"
+  - "epel-release"
+  - "yum-utils"
+
+debug_packages:
+  - "ipmitool"
+  - "htop"
+  - "atop"
+  - "strace"
+  - "sysstat"
+  - "lsof"
+  - "lshw"
+  - "nmap"
+  - "tcpdump"
+  - "procps-ng"
+  - "edac-utils"
+  - "smartmontools"
+
+fqdn: '{{ cluster_name }}.{{ domain_name }}'
+
+# Postfix configuration
+postfix_myhostname: '{{ cluster_name }}'
+postfix_mydomain: '{{ domain_name }}'
+postfix_mydestination: []
+postfix_mynetworks:
+  - 127.0.0.0/8
+  - '[::1]/128'
+  - '{{ sms_network }}'
+
+# Zabbix role variables
+agent_server: 'zabbix.versatushpc.com.br'
+agent_serveractive: '{{ agent_server }}'
+zabbix_version: 3.4
+
+
+# FreeIPA variables
+ipaserver_hostname: '{{ fqdn }}'
+ipaserver_domain: '{{ domain_name }}'
+ipaserver_realm: '{{ domain_name | upper }}'
+ipaserver_setup_dns: yes
+ipaserver_no_ui_redirect: yes
+ipaserver_reverse_zones: ['{{ sms_ip | reverse_name }}']
+ipaserver_auto_forwarders: yes
+ipaclient_mkhomedir: yes
+
+freeipa_enabled: '{{ target }} == "cluster"'
+
+
+
+# Test avoid early failures to make running multiple times better to test
+testing: no
