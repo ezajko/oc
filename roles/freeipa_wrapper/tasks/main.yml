@@ -1,0 +1,15 @@
+---
+# Do I realy need this?
+- fail:
+    msg: |
+      FreeIPA is already installed, reinstalling is not supported. Please
+      remove it completely before running the playbook again.
+  when: (test is not defined or test == "no") and "ipa-server" in ansible_facts.packages
+
+- include_role:
+    name: ipaserver
+  vars:
+    state: present
+  when: freeipa_enabled and 'ipa-server' not in ansible_facts.packages or (test is defined and test)
+
+
