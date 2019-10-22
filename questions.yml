@@ -87,6 +87,13 @@
 
     Expects a IP range like 1.1.1.1-1.1.1.10
 
+- name: service_network_enabled
+  promt: Configure service network?
+  default: yes
+  choices: ['yes', 'no']
+  private: no
+  help: Network used for BMC/IPMI services
+
 - name: service_network
   prompt: Enter the service network
   help: |
@@ -96,6 +103,7 @@
     as many as nodes are defined on cluster.csv
   default: 172.25.0.0/16
   private: no
+  when: service_network_enabled
 
 - name: service_network_ip_start
   prompt: Service network first node IP address

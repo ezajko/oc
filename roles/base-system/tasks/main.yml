@@ -1,0 +1,11 @@
+- include_role:
+    name: roles/freeipa/roles/ipaserver
+  vars:
+    state: present
+  when: "'ipa-server' not in ansible_facts.packages"
+
+- include_role:
+    name: xcat
+  when: "'xCAT' not in ansible_facts.packages"
+
+- import_tasks: sanitize-ssh.yml

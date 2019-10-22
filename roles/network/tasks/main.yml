@@ -1,0 +1,45 @@
+- name: Set hostname
+  hostname:
+    name: '{{ fqdn }}'
+
+- name: Test DNS resolution
+  block:
+    - yum: name=bind-utils state=present
+    - shell: host example.com
+      changed_when: false
+
+- name: Configure the firewall with the internal zones as trusted
+  firewalld:
+    zone: trusted
+    state: enabled
+    interface: '{{ sms_eth_internal }}'
+
+- name: Reload firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Install needed network manager libs
+  package:
+    name:
+      - dbus
+      - NetworkManager-glib
+    state: present
+
+- name: "Setup internal interface"
+  nmcli:
+    type: ethernet
+    ifname: '{{ sms_eth_internal }}'
+    ip4: '{{ sms_ip  }}/{{ sms_network.split("/")[-1] }}'
+    state: present
+    autoconnect: yes
+    conn_name: '{{ sms_eth_internal }}'
+
+# https://github.com/ansible/ansible/issues/36615
+- name: Workaround nmcli bug
+  shell: |
+    nmcli c mod {{ sms_eth_internal }} ipv4.method manual
+
+- name: Reload connection
+  shell:
+    nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}

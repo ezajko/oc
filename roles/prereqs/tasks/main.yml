@@ -1,0 +1,20 @@
+# Prereqs
+- name: Check system version
+  assert:
+    that:
+      ansible_facts.distribution == "CentOS" and
+      ansible_facts.distribution_version == "7.6"
+
+- name: Cleanup hosts
+  copy:
+    content: |
+      127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+      ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+    dest: /etc/hosts
+
+- name: Enable CentOS Vault
+  include_role:
+    name: centos-vault
+  when: ansible_facts.distribution == "CentOS"
+
+- import_tasks: install-xcat-repos.yml
