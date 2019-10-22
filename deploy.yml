@@ -5,7 +5,13 @@
     - package_facts:
         manager: auto
   tasks:
-    # prereqs
+
+    - block:
+      - include_tasks: test/ovirt-test.yml
+      - setup:
+      when: test_snap is defined and test_snap == 'yes'
+
+    # Prereqs
     - name: Check system version
       assert:
         that:
