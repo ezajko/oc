@@ -1,50 +1,53 @@
 ---
-- assert:
-    that:
-      - lookup("env", "OVIRT_PASSWORD")
+- hosts: ovirtserver
+  gather_facts: no
+  tasks:
+    - assert:
+        that:
+          - lookup("env", "OVIRT_PASSWORD")
 
-- ovirt_snapshot_facts:
-    auth:
-      insecure: yes
-      url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-      username: admin@internal
-      password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-    vm: ansible-test
-    description: 2-before-ansible-run
-  delegate_to: localhost
+    - ovirt_snapshot_facts:
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        vm: ansible-test
+        description: 2-before-ansible-run
+      delegate_to: localhost
 
-- debug:
-    var: ovirt_snapshots
-  delegate_to: localhost
+    - debug:
+        var: ovirt_snapshots
+      delegate_to: localhost
 
-- ovirt_vm:
-    auth:
-      insecure: yes
-      url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-      username: admin@internal
-      password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-    name: ansible-test
-    state: stopped
-  delegate_to: localhost
+    - ovirt_vm:
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        name: ansible-test
+        state: stopped
+      delegate_to: localhost
 
-- ovirt_snapshot:
-    vm_name: ansible-test
-    auth:
-      insecure: yes
-      url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-      username: admin@internal
-      password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-    state: restore
-    snapshot_id: '{{ ovirt_snapshots[0].id }}'
-  delegate_to: localhost
+    - ovirt_snapshot:
+        vm_name: ansible-test
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        state: restore
+        snapshot_id: '{{ ovirt_snapshots[0].id }}'
+      delegate_to: localhost
 
-- ovirt_vm:
-    auth:
-      insecure: yes
-      url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-      username: admin@internal
-      password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-    name: ansible-test
-    state: running
-  delegate_to: localhost
+    - ovirt_vm:
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        name: ansible-test
+        state: running
+      delegate_to: localhost
 
