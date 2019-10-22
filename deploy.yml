@@ -5,11 +5,6 @@
     - package_facts:
         manager: auto
   tasks:
-    - block:
-      - include_tasks: test/ovirt-test.yml
-      - setup:
-      when: test_snap is defined and test_snap == 'yes'
-
     # https://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisite://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisites
     - import_role: name=prereqs
     - import_role: name=network
