@@ -1,8 +1,4 @@
-- include_tasks: '{{ step }}.yml'
-  loop_control:
-    loop_var: step
-  loop:
-  - install
-  - site
-  - network
-  - password
+- include_tasks: install.yml
+- include_tasks: site.yml
+- include_tasks: network.yml
+- include_tasks: selinux.yml

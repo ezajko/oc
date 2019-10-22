@@ -73,3 +73,6 @@ ipaclient_mkhomedir: yes
 
 # Test avoid early failures to make running multiple times better to test
 test: no
+
+# CentOS Vault version to pin
+centos_vault_version: 7.6.1810

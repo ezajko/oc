@@ -1,0 +1,28 @@
+---
+
+- name: Check input
+  assert:
+    that:
+      - centos_vault_version in centos_vault_supported_versions
+      - install_on_nodes is defined and install_on_nodes
+
+- name: Install CentOS Vault repository into image
+  yum:
+    installroot: "{{ chroot }}"
+    state: present
+    enablerepo: "base,updates,extras"
+    name:
+      - yum-utils
+      - centos-release
+
+- name: Enable CentOS Vault repository into image
+  copy:
+    src: /etc/yum.repos.d/CentOS-Vault.repo
+    dest: "{{ chroot }}etc/yum.repos.d/"
+    remote_src: yes
+
+- name: Check CentOS Vault repository into image
+  with_items: [base, extras, updates]
+  shell: |
+    yum repolist --installroot {{ chroot }} | grep "C{{ centos_vault_version }}-{{ item }}"
+  changed_when: false

@@ -1,0 +1,24 @@
+- copy:
+    content: |
+      module xCAT-httpd-read-tftpdir 1.0;
+
+      require {
+          type httpd_t;
+          type tftpdir_t;
+          class dir read;
+          class file { getattr open read };
+      }
+
+      #============= httpd_t ==============
+      allow httpd_t tftpdir_t:dir read;
+      allow httpd_t tftpdir_t:file { getattr open read };
+    dest: /tmp/xCAT-httpd-read-tftpdir.te
+
+- shell: |
+    checkmodule -M -m -o /tmp/xCAT-httpd-read-tftpdir.mod /tmp/xCAT-httpd-read-tftpdir.te
+    semodule_package -o /tmp/xCAT-httpd-read-tftpdir.pp -m /tmp/xCAT-httpd-read-tftpdir.mod
+    semodule -i /tmp/xCAT-httpd-read-tftpdir.pp
+
+    semanage fcontext -a -t httpd_sys_content_t '/install(/.*)?'
+    restorecon -R /install
+

@@ -22,3 +22,12 @@
   yum:
     name: xCAT
     state: present
+
+- selinux:
+    state: enforcing
+    policy: targeted
+
+- systemd:
+    name: firewalld
+    enabled: yes
+    state: started

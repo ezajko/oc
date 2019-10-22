@@ -1,0 +1,41 @@
+---
+- name: Check input
+  assert:
+    that:
+      - centos_vault_version in centos_vault_supported_versions
+
+- name: Install CentOS Release
+  yum:
+    name: centos-release
+    state: present
+
+- name: Configure CentOS version
+  block:
+    - yum_repository:
+        name: '{{ item }}'
+        state: present
+        file: CentOS-Base
+        enabled: no
+        mirrorlist: "http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo={{ item }}&infra=$infra"
+        description: "CentOS-$releasever - {{ item | capitalize }}"
+        gpgcheck: yes
+        gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
+
+      with_items:
+        - base
+        - extras
+        - updates
+
+    - yum_repository:
+        name: 'C{{ centos_vault_version }}-{{ item }}'
+        file: CentOS-Vault
+        enabled: yes
+        baseurl: "http://vault.centos.org/{{ centos_vault_version }}/{{ 'os' if item == 'base' else item }}/$basearch/"
+        gpgcheck: yes
+        gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
+        description: 'CentOS-{{ centos_vault_version }} - {{ item | capitalize }}'
+      with_items:
+        - base
+        - extras
+        - updates
+      changed_when: false

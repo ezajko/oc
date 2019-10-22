@@ -1,54 +1,17 @@
 ---
 - hosts: ovirtserver
   gather_facts: no
-
-  vars:
-    token_file: .ovirt-token.json
-
   tasks:
-    - name: Get token
-      include_vars:
-        file: .ovirt-token.yaml
-        name: token
-      ignore_errors: yes
-
-    - when: token is not defined or token.json.exp | int < now().timestamp()
-      block:
-        - name: Prompt password
-          pause:
-            prompt: oVirt password
-            echo: no
-          register: password
-
-        - name: Login
-          uri:
-            url: https://ovirt.local.versatushpc.com.br/ovirt-engine/sso/oauth/token
-            method: POST
-            validate_certs: no
-            headers:
-              Accept: application/json
-            body_format: form-urlencoded
-            body:
-            - [scope, ovirt-app-api]
-            - [username, admin@internal]
-            - [password, "{{ password.user_input }}"]
-            - [grant_type, password]
-          register: login
-          delegate_to: localhost
-          when: token is not defined
-
-        - name: Save token
-          copy:
-            dest:  .ovirt-token.yaml
-            content:
-              '{{ login | to_yaml }}'
-          delegate_to: localhost
+    - assert:
+        that:
+          - lookup("env", "OVIRT_PASSWORD")
 
     - ovirt_snapshot_facts:
         auth:
           insecure: yes
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-          token: '{{ token.json.access_token }}'
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         vm: ansible-test
         description: 2-before-ansible-run
       delegate_to: localhost
@@ -61,7 +24,8 @@
         auth:
           insecure: yes
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-          token: '{{ token.json.access_token }}'
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: ansible-test
         state: stopped
       delegate_to: localhost
@@ -71,7 +35,8 @@
         auth:
           insecure: yes
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-          token: '{{ token.json.access_token }}'
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         state: restore
         snapshot_id: '{{ ovirt_snapshots[0].id }}'
       delegate_to: localhost
@@ -80,7 +45,8 @@
         auth:
           insecure: yes
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
-          token: '{{ token.json.access_token }}'
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: ansible-test
         state: running
       delegate_to: localhost

@@ -1,0 +1,4 @@
+---
+# vars file for roles/centos-vault
+centos_vault_supported_versions:
+  - 7.6.1810

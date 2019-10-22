@@ -1,11 +1,8 @@
 - name: xCAT Setup site
   shell: |
-    source /etc/profile.d/xcat.sh
-    chdef -t site domain={{ domain_name }} \
-      master={{ sms_ip }} \
-      nameservers={{ sms_ip }} \
-      dhcpinterfaces={{ sms_eth_internal }} \
-      externaldns=1 \
+    /opt/xcat/bin/chdef -t site \
+      "dhcpinterfaces={{ fqdn }}|{{ sms_eth_internal }}" \
+      domain={{ domain_name }} \
       FQDNfirst=1 \
-      cleanupxcatpost=1
+      externaldns=1
 

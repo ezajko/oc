@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    centos_vault_version: 7.6.1810
+  roles:
+    - role: centos-vault
