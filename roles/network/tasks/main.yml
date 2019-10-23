@@ -2,10 +2,11 @@
   hostname:
     name: '{{ fqdn }}'
 
-- name: Test DNS resolution
-  block:
-    - yum: name=bind-utils state=present
-    - shell: host example.com
+- block:
+    - name: Install bind-utils
+      yum: name=bind-utils state=present
+    - name: Test name resolve
+      shell: host example.com
       changed_when: false
 
 - name: Configure the firewall with the internal zones as trusted

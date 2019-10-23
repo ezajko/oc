@@ -13,6 +13,8 @@
         source /etc/profile.d/xcat.sh
         copycds /root/CentOS-7-x86_64-DVD-1810.iso
         genimage centos7.6-x86_64-netboot-compute
+      args:
+        creates: /install/netboot/centos7.6/x86_64/compute/
 
     - name: Get public key
       shell: cat ~/.ssh/id_ed25519.pub
@@ -22,9 +24,10 @@
       lineinfile:
         line: '{{ public_key.stdout }}'
         state: present
+        create: yes
         path: /install/netboot/centos7.6/x86_64/compute/rootimg/root/.ssh/authorized_keys
 
-    - name: Install headn node repositories in the image
+    - name: Install head node repositories in the image
       shell: |
         rm -f /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/*
         cp -f /etc/yum.repos.d/* /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/

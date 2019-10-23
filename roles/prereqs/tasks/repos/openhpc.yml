@@ -1,6 +1,5 @@
 - name: OpenHPC
   copy:
-    create: yes
     dest: /etc/yum.repos.d/OpenHPC.repo
     content: |
       [OpenHPC]
@@ -17,7 +16,6 @@
 
 - name: OpenHPC keys
   copy:
-    create: yes
     dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-OpenHPC-1
     content: |
       -----BEGIN PGP PUBLIC KEY BLOCK-----

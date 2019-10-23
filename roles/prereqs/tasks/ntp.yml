@@ -1,6 +1,6 @@
 - name: Install NTPd
   yum:
-    name: ntpd
+    name: ntp
     state: present
 
 - name: Config ntpd
@@ -13,5 +13,6 @@
     - { regex: '^server 1', line: 'server 1.br.pool.ntp.org iburst' }
     - { regex: '^server 2', line: 'server 2.br.pool.ntp.org iburst' }
     - { regex: '^server 3', line: 'server 3.br.pool.ntp.org iburst' }
-    - { regex: '^#restrict [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} mask', line: 'restrict {{ sms_network.split("/")[0] }} mask 255.255.255.0 nomodify notrap' }
+    - { regex: '^#restrict [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} mask',
+        line: 'restrict {{ sms_network.split("/")[0] }} mask {{ sms_network | ipaddr("netmask") }} nomodify notrap' }
 

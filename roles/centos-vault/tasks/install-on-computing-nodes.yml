@@ -17,7 +17,6 @@
 
 - name: Enable CentOS Vault repository into image
   copy:
-    create: yes
     src: /etc/yum.repos.d/CentOS-Vault.repo
     dest: "{{ chroot }}etc/yum.repos.d/"
     remote_src: yes

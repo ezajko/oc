@@ -8,11 +8,13 @@
     name: xCAT
     state: present
 
-- selinux:
+- name: Enable SELinux
+  selinux:
     state: enforcing
     policy: targeted
 
-- systemd:
+- name: Enable Firewalld
+  systemd:
     name: firewalld
     enabled: yes
     state: started

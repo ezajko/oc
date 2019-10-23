@@ -1,3 +1,4 @@
+
 - name: Sanitize root ssh configuration and generate root keys
   block:
     - file:

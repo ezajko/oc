@@ -2,28 +2,3 @@
 - include_role:
     name: xcat
   when: "'xCAT' not in ansible_facts.packages"
-- import_tasks: sanitize-ssh.yml
-- shell: |
-    source /etc/profile.d/xcat.sh
-    tabdump postscripts > postscripts.csv
-    sed -i 's/remoteshell\,//' postscripts.csv
-    tabrestore postscripts.csv
-    rm -rf postscripts.csv
-
-- file:
-    state: directory
-    path: /install/postscripts/versatushpc
-
-- copy:
-    create: yes
-    dest: /install/postscripts/versatushpc/freeipa
-    mode: '0755'
-    content: |
-      ipa-client-install --domain={{ domain_name }} -p admin -w {{ ipaadmin_password }} --enable-dns-updates --force-join -U
-
-- shell: |
-    source /etc/profile.d/xcat.sh
-    tabdump postscripts > postscripts.csv
-    sed -i 's/syncfiles/syncfiles\,versatushpc\/freeipa/' postscripts.csv
-    tabrestore postscripts.csv
-    rm -rf postscripts.csv
