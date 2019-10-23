@@ -14,4 +14,4 @@
 - name: Check ipa dnszone-mode return
   fail:
     msg: "ipa dnszone-mod failed with error: {{ ipadnszonemode.stderr }}"
-  when: ipadnszonemode.stderr is not search("no modifications to be performed")
+  when: ipadnszonemode.rc != 0 and ipadnszonemode.stderr is not search("no modifications to be performed")
