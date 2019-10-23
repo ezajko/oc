@@ -107,6 +107,7 @@
 
 - name: service_network_ip_start
   prompt: Service network first node IP address
+  when: service_network_enabled
   default_template: service_network | ipaddr('next_usable')
   private: no
   help: |
