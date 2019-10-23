@@ -1,0 +1,7 @@
+- include_role:
+    name: roles/freeipa/roles/ipaserver
+  vars:
+    state: present
+  when: "'ipa-server' not in ansible_facts.packages"
+
+- shell: ipa dnszone-mod {{ domain_name }}. --allow-sync-ptr=true

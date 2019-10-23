@@ -1,0 +1,43 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+    - name: Download CentOS
+      get_url:
+        url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
+        dest: /root/CentOS-7-x86_64-DVD-1810.iso
+
+    - name: Generate Image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        copycds /root/CentOS-7-x86_64-DVD-1810.iso
+        genimage centos7.6-x86_64-netboot-compute
+
+    - name: Get public key
+      shell: cat ~/.ssh/id_ed25519.pub
+      register: public_key
+
+    - name: Put public key into the image
+      lineinfile:
+        line: '{{ public_key.stdout }}'
+        state: present
+        path: /install/netboot/centos7.6/x86_64/compute/rootimg/root/.ssh/authorized_keys
+
+    - name: Install headn node repositories in the image
+      shell: |
+        rm -f /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/*
+        cp -f /etc/yum.repos.d/* /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/
+
+    - name: Install freeipa-client into the image
+      yum:
+        installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
+        name: freeipa-client
+        state: present
+
+    - name: Run packimage
+      shell: |
+        source /etc/profile.d/xcat.sh
+        packimage centos7.6-x86_64-netboot-compute
+
+

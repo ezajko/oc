@@ -21,7 +21,7 @@ git submodule init
 git submodule update
 ```
 
-## Run
+## Deploy
 
 * `ansible-playbook deploy.yml`
 * Answer the questions to configure the environment.
@@ -31,8 +31,12 @@ git submodule update
   @answers-2019092419.yml`
 
 
+## Create image
+
+* run `ansible-playbook add-image.yml`
+
 ---
-  
+
 # Running single role
 
 `ansible -m include_role -a 'name=<ROLE_NAME>' sms -e @answers-...yml`

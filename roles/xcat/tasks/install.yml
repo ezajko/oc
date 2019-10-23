@@ -1,3 +1,8 @@
+- name: Enable xCAT repos
+  shell: |
+    yum-config-manager --enable xcat-dep
+    yum-config-manager --enable xcat-core
+
 - name: Install xCAT
   yum:
     name: xCAT
