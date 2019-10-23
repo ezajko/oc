@@ -8,5 +8,6 @@
     # https://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisite://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisites
     - import_role: name=prereqs
     - import_role: name=network
+    - import_role: name=versatus
     - import_role: name=base-system
 
