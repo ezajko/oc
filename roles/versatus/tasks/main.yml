@@ -1,4 +1,5 @@
 - copy:
+    create: yes
     dest: /etc/versatushpc-release
     content: |
       RELEASE=0.1-DEVELOPMENT

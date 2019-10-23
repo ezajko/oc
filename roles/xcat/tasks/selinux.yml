@@ -1,4 +1,5 @@
 - copy:
+    create: yes
     content: |
       module xCAT-httpd-read-tftpdir 1.0;
 

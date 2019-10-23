@@ -15,6 +15,7 @@
     path: /install/postscripts/versatushpc
 
 - copy:
+    create: yes
     dest: /install/postscripts/versatushpc/freeipa
     mode: '0755'
     content: |
