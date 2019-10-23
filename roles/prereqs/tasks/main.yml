@@ -17,4 +17,7 @@
     name: centos-vault
   when: ansible_facts.distribution == "CentOS"
 
-- import_tasks: install-xcat-repos.yml
+- import_tasks: repos/epel.yml
+- import_tasks: repos/mellanox.yml
+- import_tasks: repos/openhpc.yml
+- import_tasks: repos/xcat.yml
