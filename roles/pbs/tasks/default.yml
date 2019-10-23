@@ -1,0 +1,3 @@
+---
+- import_tasks: install-headnode.yml
+- import_tasks: setup-nodes.yml

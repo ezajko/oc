@@ -1,0 +1,10 @@
+- assert:
+    that:
+      - nodes is defined
+
+- name: Setup Nodes
+  with_dict: "{{ nodes }}"
+  ignore_errors: yes
+  shell: |
+    source /etc/profile.d/pbs.sh
+    qmgr -c "create node {{ item.key }}"
