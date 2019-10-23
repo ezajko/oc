@@ -1,16 +1,9 @@
+- name: Remove ~/.ssh/config created by xCAT
+  file:
+    state: absent
+    path: ~/.ssh/config
 
-- name: Sanitize root ssh configuration and generate root keys
-  block:
-    - file:
-        state: absent
-        path: ~/.ssh
-
-    - file:
-        state: directory
-        path: ~/.ssh
-        mode: '0700'
-
-    - openssh_keypair:
-        type: ed25519
-        comment: Default root keypair for cluster authentication
-        path: /root/.ssh/id_ed25519
+- openssh_keypair:
+    type: ed25519
+    comment: Default root keypair for cluster authentication
+    path: /root/.ssh/id_ed25519
