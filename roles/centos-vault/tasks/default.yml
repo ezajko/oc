@@ -4,38 +4,58 @@
     that:
       - centos_vault_version in centos_vault_supported_versions
 
-- name: Install CentOS Release
+
+- name: CentOS Vault repos
+  copy:
+    dest: /etc/yum.repos.d/CentOS-Vault.repo
+    content: |
+      # C7.6.1810
+      [C7.6.1810-base]
+      name=CentOS-7.6.1810 - Base
+      baseurl=http://vault.centos.org/7.6.1810/os/\$basearch/
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+      enabled=0
+
+      [C7.6.1810-updates]
+      name=CentOS-7.6.1810 - Updates
+      baseurl=http://vault.centos.org/7.6.1810/updates/\$basearch/
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+      enabled=0
+
+      [C7.6.1810-extras]
+      name=CentOS-7.6.1810 - Extras
+      baseurl=http://vault.centos.org/7.6.1810/extras/\$basearch/
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+      enabled=0
+
+      [C7.6.1810-centosplus]
+      name=CentOS-7.6.1810 - CentOSPlus
+      baseurl=http://vault.centos.org/7.6.1810/centosplus/\$basearch/
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+      enabled=0
+
+      [C7.6.1810-fasttrack]
+      name=CentOS-7.6.1810 - Fasttrack
+      baseurl=http://vault.centos.org/7.6.1810/fasttrack/\$basearch/
+      gpgcheck=1
+      gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+      enabled=0
+      EOF
+
+- name: Install yum-config-manager from the vault to set up the repositories
   yum:
-    name: centos-release
+    disablerepo: '*'
+    enablerepo: C7.6.1810-base
+    name: yum-utils
     state: present
 
-- name: Configure CentOS version
-  block:
-    - yum_repository:
-        name: '{{ item }}'
-        state: present
-        file: CentOS-Base
-        enabled: no
-        mirrorlist: "http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo={{ item }}&infra=$infra"
-        description: "CentOS-$releasever - {{ item | capitalize }}"
-        gpgcheck: yes
-        gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
+- name: Enable the Vault versions of Base, Updates and Extras repositories, keeping everything else disabled.
+  shell: |
+    yum-config-manager --disable \*
+    yum-config-manager --enable C7.6.1810-{base,updates,extras}
 
-      with_items:
-        - base
-        - extras
-        - updates
 
-    - yum_repository:
-        name: 'C{{ centos_vault_version }}-{{ item }}'
-        file: CentOS-Vault
-        enabled: yes
-        baseurl: "http://vault.centos.org/{{ centos_vault_version }}/{{ 'os' if item == 'base' else item }}/$basearch/"
-        gpgcheck: yes
-        gpgkey: 'file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'
-        description: 'CentOS-{{ centos_vault_version }} - {{ item | capitalize }}'
-      with_items:
-        - base
-        - extras
-        - updates
-      changed_when: false
