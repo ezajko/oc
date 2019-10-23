@@ -88,8 +88,8 @@
     Expects a IP range like 1.1.1.1-1.1.1.10
 
 - name: service_network_enabled
-  promt: Configure service network?
-  default: yes
+  prompt: Configure service network?
+  default: 'yes'
   choices: ['yes', 'no']
   private: no
   help: Network used for BMC/IPMI services
