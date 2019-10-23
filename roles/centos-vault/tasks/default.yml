@@ -4,7 +4,6 @@
     that:
       - centos_vault_version in centos_vault_supported_versions
 
-
 - name: CentOS Vault repos
   copy:
     dest: /etc/yum.repos.d/CentOS-Vault.repo
@@ -52,4 +51,5 @@
     yum-config-manager --disable \*
     yum-config-manager --enable C7.6.1810-{base,updates,extras}
 
+- import_tasks: yum-update.yml
 
