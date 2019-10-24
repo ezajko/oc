@@ -1,0 +1,26 @@
+- name: Enable repos
+  shell: |
+    yum-config-manager --enable epel
+    yum-config-manager --enable OpenHPC
+    yum-config-manager --enable OpenHPC-updates
+
+- name: Install the base and documentation packages
+  yum:
+    state: present
+    name:
+      - ohpc-base
+      - docs-ohpc
+
+- name: Check if NTP is running
+  systemd:
+    name: ntpd
+    state: started
+
+- name: Export the required filesystems over NFS
+  copy:
+    dest: /etc/exports
+    content: |
+      /home *(rw,no_subtree_check)
+      /opt/ohpc/pub *(ro)
+
+- import_tasks: image.yml

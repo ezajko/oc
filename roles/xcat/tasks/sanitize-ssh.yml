@@ -1,7 +1,8 @@
-- name: Remove ~/.ssh/config created by xCAT
-  file:
+- name: Fix ~/.ssh/config created by xCAT
+  lineinfile:
     state: absent
-    path: ~/.ssh/config
+    path: /root/.ssh/config
+    regexp: StrictHostKeyChecking
 
 - openssh_keypair:
     type: ed25519

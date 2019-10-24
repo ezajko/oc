@@ -1,0 +1,26 @@
+- name: Change the compute image to support OpenHPC
+  yum:
+    installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
+    name:
+      - ohpc-base-compute
+      - lmod-ohpc
+      - chrony
+
+- name: Configure NTP in the image
+  lineinfile:
+    state: absent
+    regex: 0.centos.pool.ntp.org
+    line: headnode.cluster.example.com
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
+
+- name: Remove centos pool from NTP in the image
+  lineinfile:
+    state: absent
+    regex: centos\.pool
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
+
+- name: Add headnode as NTP server
+  lineinfile:
+    state: present
+    line: 'server {{ fqdn }}'
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf

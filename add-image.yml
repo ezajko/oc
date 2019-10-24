@@ -14,7 +14,7 @@
         copycds /root/CentOS-7-x86_64-DVD-1810.iso
         genimage centos7.6-x86_64-netboot-compute
       args:
-        creates: /install/netboot/centos7.6/x86_64/compute/
+        creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc
 
     - name: Get public key
       shell: cat ~/.ssh/id_ed25519.pub

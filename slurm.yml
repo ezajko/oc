@@ -1,0 +1,84 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+    - name: Install SLURM
+      yum:
+        name: ohpc-slurm-server
+
+    - name: Configure ClusterName settings in slurm.conf
+      lineinfile:
+        regex: ClusterName=\S+
+        line: ClusterName={{ fqdn.split('.')[1] }}
+        state: present
+        path: /etc/slurm/slurm.conf
+
+    - name: Configure ControlMachine settings in slurm.conf
+      lineinfile:
+        regex: ControlMachine=\S+
+        line: ControlMachine={{ fqdn }}
+        state: present
+        path: /etc/slurm/slurm.conf
+
+    - name: Disable default nodes
+      lineinfile:
+        regex: NodeName
+        state: absent
+        path: /etc/slurm/slurm.conf
+
+    - name: Disable partitions
+      lineinfile:
+        regex: PartitionName
+        state: absent
+        path: /etc/slurm/slurm.conf
+
+    - name: Make Return to Service more readily available
+      lineinfile:
+        regex: ReturnToService=1
+        line: ReturnToService=2
+        state: present
+        path: /etc/slurm/slurm.conf
+
+    - name: Create the list of required files to be synced to compute nodes with xCAT
+      block:
+        - file:
+            state: directory
+            path: /install/custom/netboot
+        - copy:
+            dest: /install/custom/netboot/compute.synclist
+            content: |
+              /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
+              /etc/munge/munge.key -> /etc/munge/munge.key
+
+    - name: Change the operating system image defaults to load the synclist
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+
+    - name: Enable services for SLURM operation
+      systemd:
+        state: started
+        enabled: yes
+        name: '{{ item }}'
+      with_items:
+        - munge
+        - slurmctld
+
+    - name: Add the required support to compute images
+      block:
+        - name: Install the SLURM client
+          yum:
+            installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
+            name: ohpc-slurm-client
+
+        - name: Restrict ordinary user access to the compute node over SSH when not running SLURM jobs
+          copy:
+            dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/pam.d/sshd
+            content: |
+              account    required     pam_slurm.so
+
+        - name: Enable services on the image
+          shell: |
+            chroot /install/netboot/centos7.6/x86_64/compute/rootimg systemctl enable munge
+            chroot /install/netboot/centos7.6/x86_64/compute/rootimg systemctl enable slurmd
