@@ -13,7 +13,7 @@
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         vm: ansible-test
-        description: 2-before-ansible-run
+        description: before-ansible
       delegate_to: localhost
 
     - debug:
