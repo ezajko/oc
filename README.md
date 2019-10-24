@@ -21,14 +21,16 @@ git submodule init
 git submodule update
 ```
 
-## Deploy
+## Runninng
 
 * `ansible-playbook deploy.yml`
-* Answer the questions to configure the environment.
-* The playbook will create an answer file in the format
-  `answers-<date>.yml`. This file contains all your answers, you can skip
-  prompt by using this answer file like this `ansible-playbook -e
-  @answers-2019092419.yml`
+  * Answer the questions to configure the environment.
+  * A new file named answers-<DATE>.yml will be created. This
+    file contains all your answers to all previous questions, you
+    will use this in the next steps.
+* Add the image `ansible-playbook add-image.yml -e @answers-<date>.yml`
+* Install OpenHPC `ansible-playbook basic-openhpc.yml -e @answers-<date>.yml`
+* Install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
 
 
 ## Create image
