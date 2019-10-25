@@ -13,7 +13,7 @@
       #============= httpd_t ==============
       allow httpd_t tftpdir_t:dir read;
       allow httpd_t tftpdir_t:file { getattr open read };
-    dest: /tmp/xCAT-httpd-read-tftpdir.te
+    dest: /root/xCAT-httpd-read-tftpdir.te
 
 - name: Install SELinux policy file for xCAT
   shell: |
