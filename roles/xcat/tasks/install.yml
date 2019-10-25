@@ -1,3 +1,9 @@
+- name: Remove external IP from /etc/hosts
+  lineinfile:
+    state: absent
+    regexp: '^{{ ansible_facts[sms_eth_external]["ipv4"]["address"] }}\s+{{ fqdn }}\s+{{ cluster_name }}'
+    path: /etc/hosts
+
 - name: Enable xCAT repos
   shell: |
     yum-config-manager --enable xcat-dep
