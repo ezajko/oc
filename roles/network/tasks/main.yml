@@ -11,8 +11,9 @@
 
 - name: Configure the firewall with the internal zones as trusted
   firewalld:
+    permanent: yes
     zone: trusted
-    state: enabled
+    state: present
     interface: '{{ sms_eth_internal }}'
 
 - name: Reload firewalld
