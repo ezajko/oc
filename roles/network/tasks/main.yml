@@ -13,7 +13,7 @@
   firewalld:
     permanent: yes
     zone: trusted
-    state: present
+    state: enabled
     interface: '{{ sms_eth_internal }}'
 
 - name: Reload firewalld
