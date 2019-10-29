@@ -1,0 +1,72 @@
+---
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+    - name: Load MAC addresses
+      include_vars:
+        file: nodes-macs.yml
+        name: macs
+
+    - name: Check that MACs are defined
+      assert:
+        that:
+          - macs is defined
+
+    - name: Define nodes
+      loop: '{{ macs }}'
+      loop_control:
+        index_var: i
+        loop_var: node
+      shell: |
+        source /etc/profile.d/xcat.sh
+        mkdef -f -t node \
+          {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding, i) }} \
+          ip={{ sms_network_ip_start | ipmath(i) }} \
+          bmc={{ service_network_ip_start | ipmath(i) }} \
+          mac={{ node.mac }} \
+          {% if service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }}{% endif %}\
+          {% if service_network_enabled %}bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %}\
+          mgt=ipmi \
+          groups=compute,all \
+          netboot=xbna \
+          arch=x86_64
+
+    - name: Create host and attach image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        makehosts
+        nodeset compute osimage=centos7.6-x86_64-netboot-compute
+
+    - name: Define hosts in PBS
+      when: queue_system == "pbs"
+      shell: |
+        source /etc/profile.d/xcat.sh
+        for host in $(nodels); do
+          qmgr -c "create node $host"
+        done
+
+    - name: Define nodes in Slurm
+      when: queue_system == "slurm"
+      loop: '{{ nodes }}'
+      loop_control:
+        loop_var: node
+        index_var: i
+      lineinfile: 
+        line: 'NodeName={{ node_prefix }}{{ nodes_separator }}{{ "%0*d" | format(node_padding, i) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+        state: present
+        file: /etc/slurm.conf
+
+    - name: Define default queue for Slurm
+      loop: '{{ nodes }}'
+      loop_control:
+        loop_var: node
+        index_var: i
+      lineinfile:
+        file: /etc/slurm.conf
+        state: present
+        line: 'PartitionName={{ slurm_queue_name }} Nodes={{ node_prefix }}{{ nodes_separator }}{{ "%0*d-" | format(node_padding, i) }} Default=YES MaxTime=24:00:00 State=UP'
+        
+
+

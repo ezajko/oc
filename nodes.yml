@@ -1,0 +1,5 @@
+- mac: '56:6f:90:d5:00:45'
+  slurm:
+    Sockets: 1
+    CoresPerSocket: 1
+    ThreadsPerCore: 1
