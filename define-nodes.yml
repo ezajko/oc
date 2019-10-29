@@ -64,7 +64,14 @@
       shell: |
         source /etc/profile.d/xcat.sh
         makehosts
-        nodeset osimage=centos7.6-x86_64-netboot-compute compute
+
+    - name: Run nodeset on new nodes
+      loop: '{{ nodes }}'
+      loop_control:
+        index_var: i
+      shell: |
+        source /etc/profile.d/xcat.sh
+        nodeset osimage=centos7.6-x86_64-netboot-compute {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }}
 
     - name: Update dhcpd with nodes
       shell: |
