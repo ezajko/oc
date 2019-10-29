@@ -1,0 +1,31 @@
+---
+- hosts: sms
+  gather_facts: yes
+  vars:
+    services:
+      - ntpd
+      - xcatd
+      - ipa
+      - dhcpd
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  tasks:
+
+  - name: Get trsuted interfaces
+    shell: |
+      firewall-cmd --list-all --zone=trusted | awk '/interfaces/ { print $2 }'
+    register: zones
+
+  - name: Internal interface should be in trusted zone
+    assert:
+      that:
+        - "'{{ sms_eth_internal }}' in zones.stdout"
+
+  - name: Check service
+    shell: |
+      systemctl is-active {{ service }}
+    loop: '{{ services }}'
+    loop_control:
+      loop_var: service
+
