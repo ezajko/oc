@@ -3,44 +3,40 @@
   gather_facts: no
   vars:
     skip_questions: yes
+  pre_tasks:
+    - package_facts:
+        manager: auto
   tasks:
-    - name: Load MAC addresses
+    - name: Load nodes variables
       include_vars:
-        file: nodes-macs.yml
-        name: macs
+        file: nodes.yml
 
-    - name: Check that MACs are defined
+    - name: Check that nodes are defined
       assert:
         that:
-          - macs is defined
+          - nodes is defined
 
     - name: Define nodes
-      loop: '{{ macs }}'
+      loop: '{{ nodes }}'
       loop_control:
         index_var: i
         loop_var: node
       shell: |
         source /etc/profile.d/xcat.sh
         mkdef -f -t node \
-          {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding, i) }} \
+          {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} \
           ip={{ sms_network_ip_start | ipmath(i) }} \
           bmc={{ service_network_ip_start | ipmath(i) }} \
-          mac={{ node.mac }} \
-          {% if service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }}{% endif %}\
-          {% if service_network_enabled %}bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %}\
+          mac={{ node.mac }} \ 
+          {% if service_network_enabled is defined and service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }} \
+          bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
           mgt=ipmi \
           groups=compute,all \
           netboot=xbna \
           arch=x86_64
 
-    - name: Create host and attach image
-      shell: |
-        source /etc/profile.d/xcat.sh
-        makehosts
-        nodeset compute osimage=centos7.6-x86_64-netboot-compute
-
     - name: Define hosts in PBS
-      when: queue_system == "pbs"
+      when: "'pbspro-server-ohpc' in ansible_facts.packages"
       shell: |
         source /etc/profile.d/xcat.sh
         for host in $(nodels); do
@@ -48,25 +44,24 @@
         done
 
     - name: Define nodes in Slurm
-      when: queue_system == "slurm"
-      loop: '{{ nodes }}'
-      loop_control:
-        loop_var: node
-        index_var: i
-      lineinfile: 
-        line: 'NodeName={{ node_prefix }}{{ nodes_separator }}{{ "%0*d" | format(node_padding, i) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
-        state: present
-        file: /etc/slurm.conf
-
-    - name: Define default queue for Slurm
+      when: "'ohpc-slurm-server' in ansible_facts.packages"
       loop: '{{ nodes }}'
       loop_control:
         loop_var: node
         index_var: i
       lineinfile:
-        file: /etc/slurm.conf
+        line: 'NodeName={{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
         state: present
-        line: 'PartitionName={{ slurm_queue_name }} Nodes={{ node_prefix }}{{ nodes_separator }}{{ "%0*d-" | format(node_padding, i) }} Default=YES MaxTime=24:00:00 State=UP'
-        
+        dest: /etc/slurm/slurm.conf
 
+    - name: Define default queue for Slurm
+      lineinfile:
+        dest: /etc/slurm/slurm.conf
+        state: present
+        line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
 
+    - name: Create host and attach image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        makehosts
+        nodeset osimage=centos7.6-x86_64-netboot-compute compute
