@@ -33,6 +33,7 @@ git submodule update
 * If using Slurm, install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
 * Define nodes
   * Edit `nodes.yml`. Here is a list of variables
+  
     |variable|required|desc|
     |---|---|---|
     |mac|yes|mac addess of the node|
