@@ -15,6 +15,7 @@
       assert:
         that:
           - nodes is defined
+          - '"ohpc-slurm-server" in ansible_facts.packages'
 
     - name: Define nodes
       loop: '{{ nodes }}'
