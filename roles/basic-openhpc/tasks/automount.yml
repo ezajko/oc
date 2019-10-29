@@ -1,0 +1,28 @@
+- name: Enable automount with FreeIPA so the compute can mount the required filesystems
+  shell: |
+    echo {{ ipaadmin_password }} | kinit admin
+    ipa automountlocation-add compute
+    ipa automountmap-add compute auto.home
+    ipa automountmap-add compute auto.ohpc
+    ipa automountkey-add compute auto.home --key="*" --info="-fstype=nfs {{ fqdn }}:/home/&"
+    ipa automountkey-add compute auto.ohpc --key="pub" --info="-fstype=nfs {{ fqdn }}:/opt/ohpc/pub"
+    ipa automountkey-add compute auto.master --key=/home --info=auto.home
+    ipa automountkey-add compute auto.master --key=/opt/ohpc --info=auto.ohpc
+    ipa automountlocation-tofiles compute
+
+- name: Create the automount script file to be run at each compute note boot process
+  copy:
+    dest: /install/postscripts/versatushpc/freeipa-automount-compute
+    content: |
+      #!/bin/sh
+      ipa-client-automount --location=compute --unattended
+      EOF
+    mode: 755
+
+- name: Add the auto mount script to xCAT defaults on compute nodes
+  shell: |
+    source /etc/profile.d/xcat.sh
+    tabdump postscripts > postscripts.csv
+    sed -i '3i"compute","versatushpc/freeipa-automount-compute”,,,' postscripts.csv
+    tabrestore postscripts.csv
+    rm -rf postscripts.csv
