@@ -30,7 +30,21 @@ git submodule update
     will use this in the next steps.
 * Add the image `ansible-playbook add-image.yml -e @answers-<date>.yml`
 * Install OpenHPC `ansible-playbook basic-openhpc.yml -e @answers-<date>.yml`
-* Install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
+* If using Slurm, install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
+* Define nodes
+  * Edit `nodes.yml`. Here is a list of variables
+    |variable|required|desc|
+    |---|---|---|
+    |mac|yes|mac addess of the node|
+    |ipmi_user|no|IPMI username, if ommited the default* one is used|
+    |ipmi_password|no|IPMI password, if ommited the default* one is used|
+    |slurm.Sockets|only for Slurm|Sockets slurm.conf entry|
+    |slurm.CoresPerSocket|only for Slurm|CoresPerSocket slurm.conf entry|
+    |slurm.ThreadsPerCore|only for Slurm|ThreadsPerCore slurm.conf entry|
+
+    _* default here means the value present in `answers-<date>.yml`._
+  * Run `ansible-deploy define-nodes.yml -e @answers-<date>.yml`. The nodes will be
+    defined in the order they appear in the file.
 
 
 ## Create image
