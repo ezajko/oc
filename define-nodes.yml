@@ -65,3 +65,8 @@
         source /etc/profile.d/xcat.sh
         makehosts
         nodeset osimage=centos7.6-x86_64-netboot-compute compute
+
+    - name: Update dhcpd with nodes
+      shell: |
+        source /etc/profile.d/xcat.sh
+        makedhcp -a
