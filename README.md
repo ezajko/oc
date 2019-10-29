@@ -47,11 +47,6 @@ git submodule update
   * Run `ansible-deploy define-nodes.yml -e @answers-<date>.yml`. The nodes will be
     defined in the order they appear in the file.
 
-
-## Create image
-
-* run `ansible-playbook add-image.yml`
-
 ---
 
 # Running single role
