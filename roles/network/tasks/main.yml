@@ -9,12 +9,17 @@
       shell: host example.com
       changed_when: false
 
-- name: Configure the firewall with the internal zones as trusted
-  firewalld:
-    permanent: yes
-    zone: trusted
-    state: enabled
-    interface: '{{ sms_eth_internal }}'
+# This doesn't work, why?
+# - name: Configure the firewall with the internal zones as trusted
+#   firewalld:
+#     permanent: yes
+#     zone: trusted
+#     state: enabled
+#     interface: '{{ sms_eth_internal }}'
+
+- name:
+  shell: |
+    firewall-cmd --permanent --zone=trusted --change-interface={{ sms_eth_internal }}
 
 - name: Reload firewalld
   systemd:
