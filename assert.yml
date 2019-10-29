@@ -29,3 +29,7 @@
     loop_control:
       loop_var: service
 
+
+  - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
+    shell:
+      nmcli c show | grep 'Wired connection'
