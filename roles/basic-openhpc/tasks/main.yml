@@ -6,9 +6,9 @@
 
 - name: Enable required repositories in the image too
   shell: |
-    yum-config-manager --installroot=/install/netboot/centos7.6/x86_64/compute/rootimg --enable epel
-    yum-config-manager --installroot=/install/netboot/centos7.6/x86_64/compute/rootimg --enable OpenHPC
-    yum-config-manager --installroot=/install/netboot/centos7.6/x86_64/compute/rootimg --enable OpenHPC-updates
+    chroot /install/netboot/centos7.6/x86_64/compute/rootimg yum-config-manager --enable epel
+    chroot /install/netboot/centos7.6/x86_64/compute/rootimg yum-config-manager --enable OpenHPC
+    chroot /install/netboot/centos7.6/x86_64/compute/rootimg yum-config-manager --enable OpenHPC-updates
 
 - name: Install the base and documentation packages
   yum:
@@ -29,4 +29,5 @@
       /home *(rw,no_subtree_check)
       /opt/ohpc/pub *(ro)
 
+- import_tasks: automount.yml
 - import_tasks: image.yml
