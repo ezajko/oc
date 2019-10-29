@@ -9,8 +9,8 @@
     - name: Check if OpenHPC and xCAT are installed
       assert:
         that:
-          - 'ohpc-base' in ansible_facts.packages
-          - 'xCAT' in ansible_facts.packages
+          - "'ohpc-base' in ansible_facts.packages"
+          - "'xCAT' in ansible_facts.packages"
 
     - name: Install SLURM
       yum:
