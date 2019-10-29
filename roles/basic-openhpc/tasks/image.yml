@@ -4,23 +4,17 @@
     name:
       - ohpc-base-compute
       - lmod-ohpc
-      - chrony
+      - ntp
 
-- name: Configure NTP in the image
+- name: Config NTP in the image
   lineinfile:
-    state: absent
-    regex: 0.centos.pool.ntp.org
-    line: headnode.cluster.example.com
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
-
-- name: Remove centos pool from NTP in the image
-  lineinfile:
-    state: absent
-    regex: centos\.pool
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
-
-- name: Add headnode as NTP server
-  lineinfile:
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/ntp.conf
     state: present
-    line: 'server {{ fqdn }}'
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
+    regexp: "^server 0"
+    line: "server {{ fqdn }}"
+
+- name: Remove other NTP servers in the image
+  lineinfile:
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/ntp.conf
+    state: absent
+    regexp: "^server (?!{{ fqdn }})"
