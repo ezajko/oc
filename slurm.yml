@@ -2,7 +2,16 @@
   gather_facts: no
   vars:
     skip_questions: yes
+  pre_tasks:
+    - package_facts:
+        manager: auto
   tasks:
+    - name: Check if OpenHPC and xCAT are installed
+      assert:
+        that:
+          - 'ohpc-base' in ansible_facts.packages
+          - 'xCAT' in ansible_facts.packages
+
     - name: Install SLURM
       yum:
         name: ohpc-slurm-server
@@ -42,10 +51,13 @@
 
     - name: Create the list of required files to be synced to compute nodes with xCAT
       block:
-        - file:
+        - name: Create /install/custom/netboot folder
+          file:
             state: directory
             path: /install/custom/netboot
-        - copy:
+
+        - name: Create /install/custom/netboot/compute.synclist
+          copy:
             dest: /install/custom/netboot/compute.synclist
             content: |
               /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
