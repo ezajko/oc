@@ -1,6 +1,7 @@
 - name: Change the compute image to support OpenHPC
   yum:
     installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
+    state: present
     name:
       - ohpc-base-compute
       - lmod-ohpc
