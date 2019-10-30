@@ -17,7 +17,6 @@
     name: centos-vault
   when: ansible_facts.distribution == "CentOS"
 
-- import_tasks: ntp.yml
 - import_tasks: repos/epel.yml
 - import_tasks: repos/mellanox.yml
 - import_tasks: repos/openhpc.yml
