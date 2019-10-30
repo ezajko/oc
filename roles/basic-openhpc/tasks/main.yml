@@ -27,7 +27,7 @@
 
 - name: Check if NTP is running
   systemd:
-    name: cronyd
+    name: chronyd
     state: started
 
 - name: Export the required filesystems over NFS

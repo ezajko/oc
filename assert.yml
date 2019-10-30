@@ -3,10 +3,12 @@
   gather_facts: yes
   vars:
     services:
-      - ntpd
+      - chronyd
       - xcatd
       - ipa
       - dhcpd
+    directories:
+      - /tftpboot/xcat/xnba/nodes
   pre_tasks:
     - package_facts:
         manager: auto
@@ -28,8 +30,24 @@
     loop: '{{ services }}'
     loop_control:
       loop_var: service
+    changed_when: false
 
+  - name: Check directories
+    loop: '{{ directories }}'
+    shell: |
+      test -d '{{ item }}'
+    changed_when: false
 
   - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
     shell:
       nmcli c show | grep 'Wired connection'
+    changed_when: false
+
+  - name: Connect to node001
+    shell: |
+      ssh node001 -- echo okay
+    changed_when: false
+
+  - name: Check that chrony is installed and running on node
+    shell: |
+      ssh node001 -- "rpm -q chrony; systemctl is-active chronyd"

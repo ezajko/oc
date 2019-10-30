@@ -33,7 +33,7 @@
           bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
           mgt=ipmi \
           groups=compute,all \
-          netboot=xbna \
+          netboot=xnba \
           arch=x86_64
 
     - name: Define hosts in PBS
@@ -44,22 +44,23 @@
           qmgr -c "create node $host"
         done
 
-    - name: Define nodes in Slurm
-      when: "'ohpc-slurm-server' in ansible_facts.packages"
-      loop: '{{ nodes }}'
-      loop_control:
-        loop_var: node
-        index_var: i
-      lineinfile:
-        line: 'NodeName={{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
-        state: present
-        dest: /etc/slurm/slurm.conf
+    - when: "'ohpc-slurm-server' in ansible_facts.packages"
+      block:
+        - name: Define nodes in Slurm
+          loop: '{{ nodes }}'
+          loop_control:
+            loop_var: node
+            index_var: i
+          lineinfile:
+            line: 'NodeName={{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+            state: present
+            dest: /etc/slurm/slurm.conf
 
-    - name: Define default queue for Slurm
-      lineinfile:
-        dest: /etc/slurm/slurm.conf
-        state: present
-        line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
+        - name: Define default queue for Slurm
+          lineinfile:
+            dest: /etc/slurm/slurm.conf
+            state: present
+            line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
 
     - name: Create host and attach image
       shell: |
@@ -72,7 +73,7 @@
         index_var: i
       shell: |
         source /etc/profile.d/xcat.sh
-        nodeset osimage=centos7.6-x86_64-netboot-compute {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }}
+        nodeset {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} osimage=centos7.6-x86_64-netboot-compute
 
     - name: Update dhcpd with nodes
       shell: |

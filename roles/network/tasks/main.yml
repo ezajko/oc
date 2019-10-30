@@ -31,8 +31,8 @@
     nmcli c mod {{ sms_eth_internal }} ipv4.method manual
 
 - name: Reload connection
-  shell:
-    nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
+  shell: nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
+  retries: 3
 
 - name:
   shell: |

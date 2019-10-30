@@ -4,17 +4,17 @@
     name:
       - ohpc-base-compute
       - lmod-ohpc
-      - crony
+      - chrony
 
-- name: Config NTP in the image
+- name: Config Chrony in the image
   lineinfile:
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/crony.conf
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
     state: present
     regexp: "^server 0"
     line: "server {{ fqdn }}"
 
-- name: Remove other NTP servers in the image
+- name: Remove other NTP servers from crony config file, in the image
   lineinfile:
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/crony.conf
+    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
     state: absent
     regexp: "^server (?!{{ fqdn }})"
