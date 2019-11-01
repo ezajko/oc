@@ -126,6 +126,8 @@
         path: /install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
         line: ohpc-slurm-client
 
+    - name: Add otherpkgs to image
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute otherpkglist=/install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
 
     - name: Create postinstall folder
       file:
@@ -138,7 +140,7 @@
         dest: /install/custom/postinstall/centos7.6/vestatus/slurm.sh
         mode: '0755'
         content: |
-          #!/bin/bash 
+          #!/bin/bash
 
           # Fix slurm not starting by adding a retry
           if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
