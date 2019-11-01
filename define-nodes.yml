@@ -28,7 +28,7 @@
           {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} \
           ip={{ sms_network_ip_start | ipmath(i) }} \
           bmc={{ service_network_ip_start | ipmath(i) }} \
-          mac={{ node.mac }} \ 
+          mac={{ node.mac }} \
           {% if service_network_enabled is defined and service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }} \
           bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
           mgt=ipmi \

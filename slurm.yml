@@ -160,3 +160,42 @@
         source /etc/profile.d/xcat.sh
         chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
       notify: genimage
+
+# yum install ohpc-slurm-server
+
+# perl -pi -e "s/ClusterName=\S+/ClusterName=ClusterExample/" /etc/slurm/slurm.conf
+# perl -pi -e "s/ControlMachine=\S+/ControlMachine=headnode.cluster.example.com/" /etc/slurm/slurm.conf
+# sed -i s/NodeName/\#NodeName/ /etc/slurm/slurm.conf
+# sed -i s/PartitionName/\#PartitionName/ /etc/slurm/slurm.conf
+# sed -i s/ReturnToService=1/\ReturnToService=2/ /etc/slurm/slurm.conf
+
+# mkdir -p /install/custom/netboot
+# cat >> /install/custom/netboot/compute.synclist << EOF
+# /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
+# /etc/munge/munge.key -> /etc/munge/munge.key
+# EOF
+# chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
+
+# systemctl enable munge
+# systemctl start munge
+# systemctl enable slurmctld
+# systemctl start slurmctld
+
+# echo ohpc-slurm-client >> /install/custom/netboot/centos7.6/compute.pkglist
+
+# mkdir -p /install/custom/postinstall/centos7.6/versatushpc/
+# cat <<EOF >/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
+# if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
+#     cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service \$IMG_ROOTIMGDIR/etc/systemd/system/
+#     sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \\
+#         -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \\
+#         -i \$IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
+#     chroot \$IMG_ROOTIMGDIR systemctl enable munge
+#     chroot \$IMG_ROOTIMGDIR systemctl enable slurmd
+# fi
+# EOF
+# chmod +x /install/custom/postinstall/centos7.6/versatushpc/slurm.sh
+# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
+#
+# genimage centos7.6-x86_64-netboot-compute
+# packimage centos7.6-x86_64-netboot-compute
