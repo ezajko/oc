@@ -23,6 +23,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     tabdump postscripts > postscripts.csv
-    sed -i '3i"compute","versatushpc/freeipa-automount-compute”,,,' postscripts.csv
+    sed -i '3i"compute","versatushpc/freeipa-automount-compute",,,' postscripts.csv
     tabrestore postscripts.csv
     rm -rf postscripts.csv
