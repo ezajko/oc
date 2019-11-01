@@ -3,8 +3,17 @@
   vars:
     skip_questions: yes
   pre_tasks:
-    - package_facts:
+    - name: Get package facts
+      package_facts:
         manager: auto
+
+  handlers:
+    - name: genimage
+      shell: |
+        source /etc/profile.d/xcat.sh
+        genimage centos7.6-x86_64-netboot-compute
+        packimage centos7.6-x86_64-netboot-compute
+
   tasks:
     - name: Check if OpenHPC and xCAT are installed
       assert:
@@ -44,7 +53,7 @@
 
     - name: Make Return to Service more readily available
       lineinfile:
-        regex: ReturnToService=1
+        regex: '^ReturnToService=\d'
         line: ReturnToService=2
         state: present
         path: /etc/slurm/slurm.conf
@@ -57,11 +66,12 @@
             path: /install/custom/netboot
 
         - name: Create /install/custom/netboot/compute.synclist
-          copy:
+          lineinfile:
             dest: /install/custom/netboot/compute.synclist
-            content: |
-              /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
-              /etc/munge/munge.key -> /etc/munge/munge.key
+            line: '{{ item }}'
+          loop:
+            - /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
+            - /etc/munge/munge.key -> /etc/munge/munge.key
 
     - name: Change the operating system image defaults to load the synclist
       shell: |
@@ -77,20 +87,71 @@
         - munge
         - slurmctld
 
-    - name: Add the required support to compute images
-      block:
-        - name: Install the SLURM client
-          yum:
-            installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
-            name: ohpc-slurm-client
+    - name: Create repo dir
+      file:
+        path: /install/post/otherpkgs/centos7.6/x86_64
+        state: directory
+        mode: '0755'
 
-        - name: Restrict ordinary user access to the compute node over SSH when not running SLURM jobs
-          copy:
-            dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/pam.d/sshd
-            content: |
-              account    required     pam_slurm.so
+    - name: Download packages
+      yum:
+        download_dir: /install/post/otherpkgs/centos7.6/x86_64
+        download_only: yes
+        name: ohpc-slurm-client
 
-        - name: Enable services on the image
-          shell: |
-            chroot /install/netboot/centos7.6/x86_64/compute/rootimg systemctl enable munge
-            chroot /install/netboot/centos7.6/x86_64/compute/rootimg systemctl enable slurmd
+    - name: Install createrepo
+      yum:
+        name: createrepo
+        state: present
+
+    - name: Run createrepo
+      shell: |
+        createrepo /install/post/otherpkgs/centos7.6/x86_64
+
+    - name: Add otherpkgsdir
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute otherpkgdir=/install/post/otherpkgs/centos7.6/x86_64
+
+    - name: Create pkglist dir
+      file:
+        state: directory
+        path: /install/custom/netboot/centos7.6/
+        mode: '0755'
+
+    - name: Add Slurm to otherpkgs list
+      lineinfile:
+        state: present
+        create: yes
+        path: /install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
+        line: ohpc-slurm-client
+
+
+    - name: Create postinstall folder
+      file:
+        state: directory
+        mode: '0755'
+        path: /install/custom/postinstall/centos7.6/vestatus/
+
+    - name: Create slurm postsinstall
+      copy:
+        dest: /install/custom/postinstall/centos7.6/vestatus/slurm.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash 
+
+          # Fix slurm not starting by adding a retry
+          if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
+            cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
+            sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \
+                -e '/\[Service\]/a\Restart=always\nRestartSec=5' \
+                -i $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
+            chroot $IMG_ROOTIMGDIR systemctl enable munge
+            chroot $IMG_ROOTIMGDIR systemctl enable slurmd
+          fi
+
+    - name: Add slurm postinstall to the image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/vestatus/slurm.sh
+      notify: genimage
