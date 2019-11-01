@@ -136,11 +136,11 @@
       file:
         state: directory
         mode: '0755'
-        path: /install/custom/postinstall/centos7.6/vestatus/
+        path: /install/custom/postinstall/centos7.6/versatushpc/
 
     - name: Create slurm postsinstall
       copy:
-        dest: /install/custom/postinstall/centos7.6/vestatus/slurm.sh
+        dest: /install/custom/postinstall/centos7.6/versatushpc/slurm.sh
         mode: '0755'
         content: |
           #!/bin/bash
@@ -158,5 +158,5 @@
     - name: Add slurm postinstall to the image
       shell: |
         source /etc/profile.d/xcat.sh
-        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/vestatus/slurm.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
       notify: genimage
