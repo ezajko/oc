@@ -32,7 +32,8 @@
 
 - name: Reload connection
   shell: nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
-  retries: 3
+  retries: 5
+  delay: 3
 
 - name:
   shell: |
