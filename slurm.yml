@@ -127,6 +127,8 @@
         line: ohpc-slurm-client
 
     - name: Add otherpkgs to image
+      shell: |
+        source /etc/profile.d/xcat.sh
         chdef -t osimage -o centos7.6-x86_64-netboot-compute otherpkglist=/install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
 
     - name: Create postinstall folder
