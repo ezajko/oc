@@ -67,6 +67,7 @@
 
         - name: Create /install/custom/netboot/compute.synclist
           lineinfile:
+            create: yes
             dest: /install/custom/netboot/compute.synclist
             line: '{{ item }}'
           loop:
