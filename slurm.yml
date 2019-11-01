@@ -185,7 +185,7 @@
 
 # mkdir -p /install/custom/postinstall/centos7.6/versatushpc/
 # cat <<EOF >/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
-# if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
+# if [ ! -f \$IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
 #     cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service \$IMG_ROOTIMGDIR/etc/systemd/system/
 #     sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \\
 #         -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \\
