@@ -20,5 +20,11 @@
     - { regex: '^server 1.*', line: 'server 1.br.pool.ntp.org iburst' }
     - { regex: '^server 2.*', line: 'server 2.br.pool.ntp.org iburst' }
     - { regex: '^server 3.*', line: 'server 3.br.pool.ntp.org iburst' }
-    - { regex: '^#allow [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}.*', line: 'allow {{ sms_network }}' }
-    - { regex: '^#local stratum', line: 'local stratum/' }
+- name: Setup cronyd files
+  lineinfile:
+    dest: /etc/chrony.conf
+    regex: '{{ item.regex }}'
+    line: '{{ item.line }}'
+    state: present
+    - 'allow {{ sms_network }}'
+    - 'local stratum 10'
