@@ -23,16 +23,16 @@ git submodule update
 
 ## Runninng
 
+* Before begin make sure to have, at last, the list of mac of the nodes.
 * `ansible-playbook deploy.yml`
   * Answer the questions to configure the environment.
-  * A new file named answers-<DATE>.yml will be created. This
-    file contains all your answers to all previous questions, you
-    will use this in the next steps.
+  * A new file named answers-<date>.yml will be created, where `<date>` is the date for today with the hour. This
+    file contains all your answers to all previous questions, you will use this in the next steps.
 * Add the image `ansible-playbook add-image.yml -e @answers-<date>.yml`
 * Install OpenHPC `ansible-playbook basic-openhpc.yml -e @answers-<date>.yml`
 * If using Slurm, install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
 * Define nodes
-  * Edit `nodes.yml`. Here is a list of variables
+  * Edit `nodes.yml`. The variable structures need stay the same. Here is a list of variables and their meanings
   
     |variable|required|desc|
     |---|---|---|
