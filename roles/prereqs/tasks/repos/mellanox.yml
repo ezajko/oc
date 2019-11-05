@@ -1,9 +1,14 @@
 - name: Install Mellanox repository
-  yum_repository:
-    file: mellanox_mlnx_ofed_dpdk_upstream_libs
-    name: mlnx_ofed_dpdk_upstream_libs_latest
-    description: Mellanox Technologies rhel7.6-$basearch mlnx_ofed_dpdk_upstream_libs latest version
-    enabled: no
-    gpgkey: http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
-    gpgcheck: yes
-    baseurl: http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel7.6/$basearch
+  copy:
+    dest: /etc/yum.repos.d/mellanox_mlnx_ofed_dpdk_upstream_libs.repo
+    content: |
+      #
+      # Mellanox Technologies Ltd. public repository configuration file.
+      # For more information, refer to http://linux.mellanox.com
+      #
+      [mlnx_ofed_dpdk_upstream_libs_latest]
+      name=Mellanox Technologies rhel7.6-\$basearch mlnx_ofed_dpdk_upstream_libs latest version
+      baseurl=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel7.6/\$basearch
+      enabled=0
+      gpgkey=http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
+      gpgcheck=1
