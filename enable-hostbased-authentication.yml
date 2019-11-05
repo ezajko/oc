@@ -1,0 +1,78 @@
+---
+- hosts: sms
+  gather_facts: yes
+  pre_tasks:
+    - name: Get package facts
+      package_facts:
+        manager: auto
+  tasks:
+
+    - name: Load nodes variables
+      include_vars:
+        file: nodes.yml
+
+    - name: Create a Hostgroup with all the Compute Nodes inside FreeIPA
+      shell: |
+        ipa hostgroup-add --desc="Compute Nodes" compute
+        ipa hostgroup-add-member --hosts={{ nodes | length | nodes_names(nodes_prefix, nodes_separator, nodes_padding) | map("regex_replace", "$", ".%s" | format(fqdn)) | join(",") }} compute
+      ignore_errors: yes
+
+
+    - name: Setup Headnode as a client only to the compute nodes
+      lineinfile:
+        path: /etc/ssh/ssh_config
+        line: '{{ item }}'
+      loop:
+        - HostbasedAuthentication yes
+        - EnableSSHKeysign yes
+
+    - name: Create postinstall script
+      copy:
+        mode: '0755'
+        dest: /install/custom/postinstall/centos7.6/hostbased-auth.sh
+        content: |
+          #!/bin/sh -x
+          
+          echo "STARTING $0"
+          # Generate the shared DSA, RSA, ECDSA and ED25519 host keys inside the image
+
+          setenforce 0
+          test -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_dsa_key     || ssh-keygen -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_dsa_key     -N '' -t dsa     -C "Shared hostkey for Hostbased Authentication"
+          test -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_rsa_key     || ssh-keygen -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_rsa_key     -N '' -t rsa     -C "Shared hostkey for Hostbased Authentication"
+          test -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ecdsa_key   || ssh-keygen -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ecdsa_key   -N '' -t ecdsa   -C "Shared hostkey for Hostbased Authentication"
+          test -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ed25519_key || ssh-keygen -f $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ed25519_key -N '' -t ed25519 -C "Shared hostkey for Hostbased Authentication"
+          setenforce 1
+
+          # Configure Image Clientside
+          grep -E '^HostbasedAuthentication yes' || echo 'HostbasedAuthentication yes' >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
+          grep -E '^EnableSSHKeysign yes'        || echo 'EnableSSHKeysign yes'        >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
+
+          # Configure Image Serverside
+          test -f $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv || cat << EOF > $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv
+          {{ fqdn }}
+          @compute
+          EOF
+
+          sed -i s/#HostbasedAuthentication/HostbasedAuthentication/ $IMG_ROOTIMGDIR/etc/ssh/sshd_config
+
+          # Create the known_hosts file with the keys:
+          ssh-keyscan -H {{ fqdn }} > $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+           
+          export DSA_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_dsa_key.pub | cut -f 2 -d " "`
+          export RSA_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_rsa_key.pub | cut -f 2 -d " "`
+          export ECDSA_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ecdsa_key.pub | cut -f 2 -d " "`
+          export ED25519_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ed25519_key.pub | cut -f 2 -d " "`
+           
+          grep -E '{{ nodes_prefix }}' $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts || echo "{{ nodes_prefix }}* ssh-ed25519 $ED25519_KEY"       >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+          grep -E '{{ nodes_prefix }}' $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts || echo "{{ nodes_prefix }}* ecdsa-sha2-nistp256 $ECDSA_KEY" >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+          grep -E '{{ nodes_prefix }}' $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts || echo "{{ nodes_prefix }}* ssh-rsa $RSA_KEY"               >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+          grep -E '{{ nodes_prefix }}' $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts || echo "{{ nodes_prefix }}* ssh-dss $DSA_KEY"               >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+
+          echo "FINISHED $0"
+
+    - name: Add postinstall script to the image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/hostbased-auth.sh
+
+
