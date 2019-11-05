@@ -12,66 +12,57 @@
       shell: |
         source /etc/profile.d/xcat.sh
         copycds /root/CentOS-7-x86_64-DVD-1810.iso
-        genimage centos7.6-x86_64-netboot-compute
       args:
         creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc
 
-    - name: Get public key
-      shell: cat ~/.ssh/id_ed25519.pub
-      register: public_key
+    - name: Create diretory
+      file:
+        state: directory
+        path: /install/custom/postinstall/centos7.6/
 
-    - name: Put public key into the image
-      lineinfile:
-        line: '{{ public_key.stdout }}'
-        state: present
-        create: yes
-        path: /install/netboot/centos7.6/x86_64/compute/rootimg/root/.ssh/authorized_keys
+    - name: Create add-cluster-key.sh postinstall
+      copy:
+        dest: /install/custom/postinstall/centos7.6/add-cluster-key.sh
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          pubkey=$(cat ~/.ssh/id_ed25519.pub)
+          authorized_keys="$IMG_ROOTIMGDIR/root/.ssh/authorized_keys"
+          if [ ! -f $authorized_keys ]; then
+              mkdir -p $IMG_ROOTIMGDIR/root/.ssh || : # ignore error
+              chmod 0700 $IMG_ROOTIMGDIR/root/.ssh
+              echo "$pubkey" >> $authorized_keys
+          else
+              grep "$pubkey" $authorized_keys || echo "$pubkey" >> $authorized_keys
+          fi
 
-    - name: Install head node repositories in the image
-      shell: |
-        rm -f /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/*
-        cp -f /etc/yum.repos.d/* /install/netboot/centos7.6/x86_64/compute/rootimg/etc/yum.repos.d/
-
-    - name: Install freeipa-client into the image
-      yum:
-        installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
-        name: freeipa-client
-        state: present
-
-    - name: Run packimage
+    - name: Add postinstall to the image
       shell: |
         source /etc/profile.d/xcat.sh
-        packimage centos7.6-x86_64-netboot-compute
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/add-cluster-key.sh
 
+    - name: Create pkglist folder
+      file:
+        state: directory
+        path: /install/custom/netboot/centos7.6/
 
-#
-# copycds CentOS-7-x86_64-DVD-1810.iso
-# mkdir -p /install/custom/postinstall/centos7.6/
-# cat <<EOF > /install/custom/postinstall/centos7.6/add-cluster-key.sh
-# #!/bin/bash
-# pubkey=$(cat ~/.ssh/id_ed25519.pub)
-# authorized_keys="$IMG_ROOTIMGDIR/root/.ssh/authorized_keys"
-# if [ ! -f $authorized_keys ]; then
-#     mkdir -p $IMG_ROOTIMGDIR/root/.ssh || : # ignore error
-#     chmod 0700 $IMG_ROOTIMGDIR/root/.ssh
-#     echo "$pubkey" >> $authorized_keys
-# else
-#     grep "$pubkey" $authorized_keys || echo "$pubkey" >> $authorized_keys
-# fi
-# EOF
-# chmod +x /install/custom/postinstall/centos7.6/add-cluster-key.sh
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/add-cluster-key.sh
+    - name: Add freeipa-client to the image
+      lineinfile:
+        create: yes
+        path: /install/custom/netboot/centos7.6/compute.pkglist
+        line: freeipa-client
 
-# mkdir -p /install/custom/netboot/centos7.6/
-# touch /install/custom/netboot/centos7.6/compute.pkglist
-# echo freeipa-client >> /install/custom/netboot/centos7.6/compute.pkglist
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkglist=/install/custom/netboot/compute.synclist
-#
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/os/x86_64/
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/updates/x86_64/
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/extras/x86_64/
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://download.fedoraproject.org/pub/epel/7/x86_64
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7
-#
-# genimage centos7.6-x86_64-netboot-compute
+    - name: Add compute.pkglist to the image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkglist=/install/custom/netboot/centos7.6/compute.pkglist
+
+    - name: Add repositorioes to the image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/os/x86_64/
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/updates/x86_64/
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://vault.centos.org/7.6.1810/extras/x86_64/
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://download.fedoraproject.org/pub/epel/7/x86_64
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir=http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7

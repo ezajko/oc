@@ -7,13 +7,6 @@
       package_facts:
         manager: auto
 
-  handlers:
-    - name: genimage
-      shell: |
-        source /etc/profile.d/xcat.sh
-        genimage centos7.6-x86_64-netboot-compute
-        packimage centos7.6-x86_64-netboot-compute
-
   tasks:
     - name: Check if OpenHPC and xCAT are installed
       assert:
@@ -68,7 +61,7 @@
         - name: Create /install/custom/netboot/compute.synclist
           lineinfile:
             create: yes
-            dest: /install/custom/netboot/compute.synclist
+            path: /install/custom/netboot/compute.synclist
             line: '{{ item }}'
           loop:
             - /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
@@ -88,114 +81,27 @@
         - munge
         - slurmctld
 
-    - name: Create repo dir
-      file:
-        path: /install/post/otherpkgs/centos7.6/x86_64
-        state: directory
-        mode: '0755'
-
-    - name: Download packages
-      yum:
-        download_dir: /install/post/otherpkgs/centos7.6/x86_64
-        download_only: yes
-        name: ohpc-slurm-client
-
-    - name: Install createrepo
-      yum:
-        name: createrepo
-        state: present
-
-    - name: Run createrepo
-      shell: |
-        createrepo /install/post/otherpkgs/centos7.6/x86_64
-
-    - name: Add otherpkgsdir
-      shell: |
-        source /etc/profile.d/xcat.sh
-        chdef -t osimage -o centos7.6-x86_64-netboot-compute otherpkgdir=/install/post/otherpkgs/centos7.6/x86_64
-
-    - name: Create pkglist dir
-      file:
-        state: directory
-        path: /install/custom/netboot/centos7.6/
-        mode: '0755'
-
-    - name: Add Slurm to otherpkgs list
+    - name: Add packages to the image
       lineinfile:
-        state: present
-        create: yes
-        path: /install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
         line: ohpc-slurm-client
+        path: /install/custom/netboot/centos7.6/compute.pkglist
+        state: present
 
-    - name: Add otherpkgs to image
-      shell: |
-        source /etc/profile.d/xcat.sh
-        chdef -t osimage -o centos7.6-x86_64-netboot-compute otherpkglist=/install/custom/netboot/centos7.6/compute.otherpkgs.pkglist
-
-    - name: Create postinstall folder
-      file:
-        state: directory
-        mode: '0755'
-        path: /install/custom/postinstall/centos7.6/versatushpc/
-
-    - name: Create slurm postsinstall
+    - name:  Create postinstall script
       copy:
-        dest: /install/custom/postinstall/centos7.6/versatushpc/slurm.sh
+        dest: /install/custom/postinstall/centos7.6/slurm.sh
         mode: '0755'
         content: |
-          #!/bin/bash
-
-          # Fix slurm not starting by adding a retry
           if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
-            cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
-            sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \
-                -e '/\[Service\]/a\Restart=always\nRestartSec=5' \
-                -i $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
-            chroot $IMG_ROOTIMGDIR systemctl enable munge
-            chroot $IMG_ROOTIMGDIR systemctl enable slurmd
+              cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
+              sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \
+                  -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \
+                  -i $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
+              chroot $IMG_ROOTIMGDIR systemctl enable munge
+              chroot $IMG_ROOTIMGDIR systemctl enable slurmd
           fi
 
-    - name: Add slurm postinstall to the image
+    - name: Add posinstall to the image
       shell: |
         source /etc/profile.d/xcat.sh
-        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
-      notify: genimage
-
-# yum install ohpc-slurm-server
-
-# perl -pi -e "s/ClusterName=\S+/ClusterName=ClusterExample/" /etc/slurm/slurm.conf
-# perl -pi -e "s/ControlMachine=\S+/ControlMachine=headnode.cluster.example.com/" /etc/slurm/slurm.conf
-# sed -i s/NodeName/\#NodeName/ /etc/slurm/slurm.conf
-# sed -i s/PartitionName/\#PartitionName/ /etc/slurm/slurm.conf
-# sed -i s/ReturnToService=1/\ReturnToService=2/ /etc/slurm/slurm.conf
-
-# mkdir -p /install/custom/netboot
-# cat >> /install/custom/netboot/compute.synclist << EOF
-# /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
-# /etc/munge/munge.key -> /etc/munge/munge.key
-# EOF
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/install/custom/netboot/compute.synclist"
-
-# systemctl enable munge
-# systemctl start munge
-# systemctl enable slurmctld
-# systemctl start slurmctld
-
-# echo ohpc-slurm-client >> /install/custom/netboot/centos7.6/compute.pkglist
-
-# mkdir -p /install/custom/postinstall/centos7.6/versatushpc/
-# cat <<EOF >/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
-# if [ ! -f \$IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
-#     cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service \$IMG_ROOTIMGDIR/etc/systemd/system/
-#     sed -e '/\[Unit\]/a\StartLimitBurst=5\nRestartLimitIntervalSec=33' \\
-#         -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \\
-#         -i \$IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
-#     chroot \$IMG_ROOTIMGDIR systemctl enable munge
-#     chroot \$IMG_ROOTIMGDIR systemctl enable slurmd
-# fi
-# EOF
-# chmod +x /install/custom/postinstall/centos7.6/versatushpc/slurm.sh
-# chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/versatushpc/slurm.sh
-#
-# genimage centos7.6-x86_64-netboot-compute
-# packimage centos7.6-x86_64-netboot-compute
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/slurm.sh

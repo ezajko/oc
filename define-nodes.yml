@@ -25,7 +25,7 @@
       shell: |
         source /etc/profile.d/xcat.sh
         mkdef -f -t node \
-          {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} \
+          {{ i | inc | node_name(nodes_prefix, nodes_separator, nodes_padding) }} \
           ip={{ sms_network_ip_start | ipmath(i) }} \
           bmc={{ service_network_ip_start | ipmath(i) }} \
           mac={{ node.mac }} \
@@ -52,7 +52,7 @@
             loop_var: node
             index_var: i
           lineinfile:
-            line: 'NodeName={{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+            line: 'NodeName={{ i | inc | node_name(nodes_prefix, nodes_separator, nodes_padding) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
             state: present
             dest: /etc/slurm/slurm.conf
 
@@ -60,12 +60,18 @@
           lineinfile:
             dest: /etc/slurm/slurm.conf
             state: present
-            line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
+            line: 'PartitionName=default Nodes={{ nodes | length | nodes_names(nodes_prefix, nodes_separator, nodes_padding) | join(",") }} Default=YES MaxTime=24:00:00 State=UP'
 
     - name: Create host and attach image
       shell: |
         source /etc/profile.d/xcat.sh
         makehosts
+
+    - name: Generate and pack image
+      shell: |
+        source /etc/profile.d/xcat.sh
+        genimage centos7.6-x86_64-netboot-compute
+        packimage centos7.6-x86_64-netboot-compute
 
     - name: Run nodeset on new nodes
       loop: '{{ nodes }}'
@@ -73,7 +79,7 @@
         index_var: i
       shell: |
         source /etc/profile.d/xcat.sh
-        nodeset {{ nodes_prefix }}{{ nodes_separator }}{{ "%0*d" | format(nodes_padding | int, i+1) }} osimage=centos7.6-x86_64-netboot-compute
+        nodeset {{ i | inc | node_name(nodes_prefix, nodes_separator, nodes_padding) }} osimage=centos7.6-x86_64-netboot-compute
 
     - name: Update dhcpd with nodes
       shell: |

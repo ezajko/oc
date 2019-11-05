@@ -1,21 +1,23 @@
-- name: Change the compute image to support OpenHPC
-  yum:
-    installroot: /install/netboot/centos7.6/x86_64/compute/rootimg
-    state: present
-    name:
-      - ohpc-base-compute
-      - lmod-ohpc
-      - chrony
-
-- name: Config Chrony in the image
+- name: Add packages to image
   lineinfile:
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
     state: present
-    regexp: "^server 0"
-    line: "server {{ fqdn }}"
+    line: '{{ item }}'
+    path: /install/custom/netboot/centos7.6/compute.pkglist
+  loop:
+    - ohpc-base-compute
+    - lmod-ohpc
+    - chrony
 
-- name: Remove other NTP servers from crony config file, in the image
-  lineinfile:
-    dest: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/chrony.conf
-    state: absent
-    regexp: "^server (?!{{ fqdn }})"
+- name: Create postinstall script
+  copy:
+    dest: /install/custom/postinstall/centos7.6/chrony-config.sh
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      sed -i s/0.centos.pool.ntp.org/headnode.cluster.example.com/ $IMG_ROOTIMGDIR/etc/chrony.conf
+      sed -i /centos.pool/d $IMG_ROOTIMGDIR/etc/chrony.conf
+
+- name: Add postinstall to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/chrony-config.sh
