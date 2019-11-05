@@ -14,7 +14,7 @@
     - name: Create a Hostgroup with all the Compute Nodes inside FreeIPA
       shell: |
         ipa hostgroup-add --desc="Compute Nodes" compute
-        ipa hostgroup-add-member --hosts={{ nodes | length | nodes_names(nodes_prefix, nodes_separator, nodes_padding) | map("regex_replace", "$", ".%s" | format(fqdn)) | join(",") }} compute
+        ipa hostgroup-add-member --hosts={{ nodes | length | nodes_names(nodes_prefix, nodes_separator, nodes_padding) | map("regex_replace", "$", ".%s" | format(domain_name)) | join(",") }} compute
       ignore_errors: yes
 
 

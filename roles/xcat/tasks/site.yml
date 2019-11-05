@@ -2,7 +2,7 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t site "dhcpinterfaces={{ fqdn }}|{{ sms_eth_internal }}"
-    chdef -t site domain=cluster.example.com
+    chdef -t site domain={{ domain_name }}
     chdef -t site FQDNfirst=1
     chdef -t site externaldns=1
     chdef -t site cleanupxcatpost=1

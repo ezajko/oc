@@ -12,8 +12,6 @@
       shell: |
         source /etc/profile.d/xcat.sh
         copycds /root/CentOS-7-x86_64-DVD-1810.iso
-      args:
-        creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc
 
     - name: Create diretory
       file:

@@ -17,7 +17,7 @@
     mode: '0755'
     content: |
       #!/bin/sh
-      ipa-client-install --domain=cluster.example.com -p admin -w "{{ ipaadmin_password }}" --enable-dns-updates --force-join -U
+      ipa-client-install --domain={{ domain_name }}  -p admin -w "{{ ipaadmin_password }}" --enable-dns-updates --force-join -U
 
 - name: Install freeipa postscript
   shell: |

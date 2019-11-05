@@ -1,0 +1,10 @@
+- name: add NVIDIA CUDA repositories
+  copy:
+    dest: /etc/yum.repos.d/cuda.repo
+    content: |
+      [cuda]
+      name=cuda
+      baseurl=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64
+      enabled=0
+      gpgcheck=1
+      gpgkey=http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/7fa2af80.pub
