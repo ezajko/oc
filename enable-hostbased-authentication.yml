@@ -32,7 +32,7 @@
         dest: /install/custom/postinstall/centos7.6/hostbased-auth.sh
         content: |
           #!/bin/sh -x
-          
+
           echo "STARTING $0"
           # Generate the shared DSA, RSA, ECDSA and ED25519 host keys inside the image
 
