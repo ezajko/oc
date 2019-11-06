@@ -1,6 +1,6 @@
 - name: Install xCAT dep repo
   copy:
-    dest: cat > /etc/yum.repos.d/xcat-dep.repo << EOF
+    dest: /etc/yum.repos.d/xcat-dep.repo
     content: |
       [xcat-dep]
       name=xCAT 2 depedencies

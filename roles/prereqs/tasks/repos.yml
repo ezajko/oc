@@ -1,4 +1,0 @@
-- import_tasks: repos/epel.yml
-- import_tasks: repos/openhpc.yml
-- import_tasks: repos/mellanox.yml
-- import_tasks: repos/xcat.yml

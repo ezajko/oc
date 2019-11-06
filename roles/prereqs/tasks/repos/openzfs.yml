@@ -52,8 +52,3 @@
       Q5XFCu4KH2vNBmn0lZxVX5BWm3R2M5XfuT/CJYHO+mk=
       =A19+
       -----END PGP PUBLIC KEY BLOCK-----
-
-- name: OpenZFS import key
-  rpm_key:
-    state: present
-    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-zfsonlinux

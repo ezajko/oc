@@ -52,7 +52,7 @@
             loop_var: node
             index_var: i
           lineinfile:
-            line: 'NodeName=ALL Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+            line: 'NodeName={{ i | inc | node_name(nodes_prefix, nodes_separator, nodes_padding) }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
             state: present
             dest: /etc/slurm/slurm.conf
 
@@ -72,6 +72,8 @@
         source /etc/profile.d/xcat.sh
         genimage centos7.6-x86_64-netboot-compute
         packimage centos7.6-x86_64-netboot-compute
+      args:
+        creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc
 
     - name: Run nodeset on new nodes
       loop: '{{ nodes }}'
