@@ -7,8 +7,7 @@ domain_to_basedn() {
 }
 
 log () {
-    local level=$(shift)
-    logger -s -t xCAT -p local4.$level $@
+    logger -s -t xCAT -p local4.info $@
 }
 
 mkdir -p /etc/{ipa,ssh,sssd,openldap}/
