@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -ex
 
 domain_to_basedn() {
     for i in $(echo $1 | tr -s . ' '); do
@@ -6,449 +6,81 @@ domain_to_basedn() {
     done | sed -e 's/,$//';
 }
 
-log () {
-    logger -s -t xCAT -p local4.info $@
-}
+exec 1> >(logger -s -t xCAT -p local4.info) 2>&1
 
 mkdir -p /etc/{ipa,ssh,sssd,openldap}/
 
+: ${DHCPINTERFACES:=headnode.cluster.example.com|eth1} # fallback for testing
+
 domain="$(hostname -d)"
-hostname="$(hostname --fqdn)"
+nodename="$(hostname --fqdn)"
 basedn="$(domain_to_basedn $domain)"
-headnode="headnode.cluster.example.com" # this came from xCAT site table
+headnode="${DHCPINTERFACES%|*}" # this came from xCAT site table
 realm="${domain^^}"
 
-cat <<EOF > /etc/krb5.conf
-includedir /etc/krb5.conf.d/
-includedir /var/lib/sss/pubconf/krb5.include.d/
+# https://access.redhat.com/articles/2622831
 
-[logging]
- default = FILE:/var/log/krb5libs.log
- kdc = FILE:/var/log/krb5kdc.log
- admin_server = FILE:/var/log/kadmind.log
-
-[libdefaults]
-  default_realm = ${realm}
-  dns_lookup_realm = true
-  dns_lookup_kdc = true
-  rdns = false
-  dns_canonicalize_hostname = false
-  ticket_lifetime = 24h
-  forwardable = true
-  udp_preference_limit = 0
-  default_ccache_name = KEYRING:persistent:%{uid}
-  default_realm = ${realm}
-
-
-[realms]
-  ${realm} = {
-    pkinit_anchors = FILE:/var/lib/ipa-client/pki/kdc-ca-bundle.pem
-    pkinit_pool = FILE:/var/lib/ipa-client/pki/ca-bundle.pem
-
-  }
-
-
-[domain_realm]
-  .${domain} = ${realm}
-  ${domain} = ${realm}
-  ${hostname} = ${realm}
-EOF
-
-grep "$domain" /etc/krb5.conf
-log info /etc/krb5.conf created
-
-cat <<EOF > /etc/sssd/sssd.conf
-[domain/${domain}]
-
-cache_credentials = True
-krb5_store_password_if_offline = True
-ipa_domain = ${domain}
-id_provider = ipa
-auth_provider = ipa
-access_provider = ipa
-ipa_hostname = ${hostname}
-chpass_provider = ipa
-ipa_server = _srv_, ${headnode}
-ldap_tls_cacert = /etc/ipa/ca.crt
+# Configure SSSD to point to the IdM domain by saving the following configuration in the /etc/sssd/sssd.conf file:
+cat <<EOF >  /etc/sssd/sssd.conf 
 [sssd]
-services = nss, sudo, pam, ssh
+config_file_version = 2
+services = nss, pam, sudo
 
-domains = ${domain}
+domains = $domain
 [nss]
-homedir_substring = /home
 
 [pam]
 
-[sudo]
-
-[autofs]
-
-[ssh]
-
-[pac]
-
-[ifp]
-
-[secrets]
-
-[session_recording]
-
+[domain/$domain]
+cache_credentials = True
+krb5_store_password_if_offline = True
+ipa_domain =$domain
+id_provider = ipa
+auth_provider = ipa
+access_provider = ipa
+ipa_hostname = $nodename
+chpass_provider = ipa
+ipa_server = $headnode
+ldap_tls_cacert = /etc/ipa/ca.crt
 EOF
-
 chmod 600 /etc/sssd/sssd.conf
-log info created /etc/sssd/sssd.conf
-
-cat <<EOF > /etc/ipa/default.conf
-[global]
-basedn = ${basedn}
-realm = ${domain^^}
-domain = ${domain}
-server = ${headnode}
-host = ${hostname}
-xmlrpc_uri = https://${domain}/ipa/xml
-enable_ra = True
-EOF
-
-log info created /etc/ipa/default.conf
-
-cat <<EOF > /etc/nsswitch.con
-#
-# /etc/nsswitch.conf
-#
-# An example Name Service Switch config file. This file should be
-# sorted with the most-used services at the beginning.
-#
-# The entry '[NOTFOUND=return]' means that the search for an
-# entry should stop if the search in the previous entry turned
-# up nothing. Note that if the search failed due to some other reason
-# (like no NIS server responding) then the search continues with the
-# next entry.
-#
-# Valid entries include:
-#
-#   nisplus         Use NIS+ (NIS version 3)
-#   nis         Use NIS (NIS version 2), also called YP
-#   dns         Use DNS (Domain Name Service)
-#   files           Use the local files
-#   db          Use the local database (.db) files
-#   compat          Use NIS on compat mode
-#   hesiod          Use Hesiod for user lookups
-#   [NOTFOUND=return]   Stop searching if not found so far
-#
-
-# To use db, put the "db" in front of "files" for entries you want to be
-# looked up first in the databases
-#
-# Example:
-#passwd:    db files nisplus nis
-#shadow:    db files nisplus nis
-#group:     db files nisplus nis
-
-passwd:     files sss
-shadow:     files sss
-group:      files sss
-#initgroups: files sss
-
-#hosts:     db files nisplus nis dns
-hosts:      files dns myhostname
-
-# Example - obey only what nisplus tells us...
-#services:   nisplus [NOTFOUND=return] files
-#networks:   nisplus [NOTFOUND=return] files
-#protocols:  nisplus [NOTFOUND=return] files
-#rpc:        nisplus [NOTFOUND=return] files
-#ethers:     nisplus [NOTFOUND=return] files
-#netmasks:   nisplus [NOTFOUND=return] files
-
-bootparams: nisplus [NOTFOUND=return] files
-
-ethers:     files
-netmasks:   files
-networks:   files
-protocols:  files
-rpc:        files
-services:   files sss
-
-netgroup:   nisplus sss
-
-publickey:  nisplus
-
-automount:  files nisplus sss
-aliases:    files nisplus
-
-sudoers: files sss
-EOF
-
-log info created /etc/nsswitch.conf
-
-cat <<EOF > /etc/openldap/ldap.conf
-# File modified by ipa-client-install
-
-# We do not want to break your existing configuration, hence:
-#   URI, BASE and TLS_CACERT have been added if they were not set.
-#   In case any of them were set, a comment with trailing note
-#   "# modified by IPA" note has been inserted.
-# To use IPA server with openLDAP tools, please comment out your
-# existing configuration for these options and uncomment the
-# corresponding lines generated by IPA.
-
-
-#
-# LDAP Defaults
-#
-
-# See ldap.conf(5) for details
-# This file should be world readable but not world writable.
-
-#BASE   dc=example,dc=com
-#URI    ldap://ldap.example.com ldap://ldap-master.example.com:666
-
-#SIZELIMIT  12
-#TIMELIMIT  15
-#DEREF      never
-
-TLS_CACERTDIR   /etc/openldap/certs
-
-# Turning this off breaks GSSAPI used with krb5 when rdns = false
-SASL_NOCANON    on
-URI ldaps://${headnode}
-BASE ${basedn}
-TLS_CACERT /etc/ipa/ca.crt
-EOF
-log info created /etc/openldap/ldap.conf
-
-cat <<EOF > /etc/ssh/ssh_config
-#   \$OpenBSD: ssh_config,v 1.30 2016/02/20 23:06:23 sobrado Exp $
-
-# This is the ssh client system-wide configuration file.  See
-# ssh_config(5) for more information.  This file provides defaults for
-# users, and the values can be changed in per-user configuration files
-# or on the command line.
-
-# Configuration data is parsed as follows:
-#  1. command line options
-#  2. user-specific file
-#  3. system-wide file
-# Any configuration value is only changed the first time it is set.
-# Thus, host-specific definitions should be at the beginning of the
-# configuration file, and defaults at the end.
-
-# Site-wide defaults for some commonly used options.  For a comprehensive
-# list of available options, their meanings and defaults, please see the
-# ssh_config(5) man page.
-
-# Host *
-#   ForwardAgent no
-#   ForwardX11 no
-#   RhostsRSAAuthentication no
-#   RSAAuthentication yes
-#   PasswordAuthentication yes
-#   HostbasedAuthentication no
-#   GSSAPIAuthentication no
-#   GSSAPIDelegateCredentials no
-#   GSSAPIKeyExchange no
-#   GSSAPITrustDNS no
-#   BatchMode no
-#   CheckHostIP yes
-#   AddressFamily any
-#   ConnectTimeout 0
-#   IdentityFile ~/.ssh/identity
-#   IdentityFile ~/.ssh/id_rsa
-#   IdentityFile ~/.ssh/id_dsa
-#   IdentityFile ~/.ssh/id_ecdsa
-#   IdentityFile ~/.ssh/id_ed25519
-#   Port 22
-#   Protocol 2
-#   Cipher 3des
-#   Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc
-#   MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
-#   EscapeChar ~
-#   Tunnel no
-#   TunnelDevice any:any
-#   PermitLocalCommand no
-#   VisualHostKey no
-#   ProxyCommand ssh -q -W %h:%p gateway.example.com
-#   RekeyLimit 1G 1h
-#
-# Uncomment this if you want to use .local domain
-# Host *.local
-#   CheckHostIP no
-
-GlobalKnownHostsFile /var/lib/sss/pubconf/known_hosts
-PubkeyAuthentication yes
-ProxyCommand /usr/bin/sss_ssh_knownhostsproxy -p %p %h
-
-Host *
-    GSSAPIAuthentication yes
-# If this option is set to yes then remote X11 clients will have full access
-# to the original X11 display. As virtually no X11 client supports the untrusted
-# mode correctly we set this to yes.
-    ForwardX11Trusted yes
-# Send locale-related environment variables
-    SendEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
-    SendEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
-    SendEnv LC_IDENTIFICATION LC_ALL LANGUAGE
-    SendEnv XMODIFIERS
-StrictHostKeyChecking no
-EOF
-
-log info created /etc/ssh/ssh_config
-
-cat <<EOF > /etc/ssh/sshd_config
-#   \$OpenBSD: sshd_config,v 1.100 2016/08/15 12:32:04 naddy Exp $
-
-# This is the sshd server system-wide configuration file.  See
-# sshd_config(5) for more information.
-
-# This sshd was compiled with PATH=/usr/local/bin:/usr/bin
-
-# The strategy used for options in the default sshd_config shipped with
-# OpenSSH is to specify options with their default value where
-# possible, but leave them commented.  Uncommented options override the
-# default value.
-
-# If you want to change the port on a SELinux system, you have to tell
-# SELinux about this change.
-# semanage port -a -t ssh_port_t -p tcp #PORTNUMBER
-#
-#Port 22
-#AddressFamily any
-#ListenAddress 0.0.0.0
-#ListenAddress ::
-
-HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_dsa_key
-HostKey /etc/ssh/ssh_host_ecdsa_key
-HostKey /etc/ssh/ssh_host_ed25519_key
-
-# Ciphers and keying
-#RekeyLimit default none
-
-# Logging
-#SyslogFacility AUTH
-SyslogFacility AUTHPRIV
-#LogLevel INFO
-
-# Authentication:
-
-#LoginGraceTime 2m
-#PermitRootLogin yes
-#StrictModes yes
-#MaxAuthTries 6
-#MaxSessions 10
-
-#PubkeyAuthentication yes
-
-# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
-# but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile  .ssh/authorized_keys
-
-#AuthorizedPrincipalsFile none
-
-#AuthorizedKeysCommand none
-#AuthorizedKeysCommandUser nobody
-
-# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
-#HostbasedAuthentication no
-# Change to yes if you don't trust ~/.ssh/known_hosts for
-# HostbasedAuthentication
-#IgnoreUserKnownHosts no
-# Don't read the user's ~/.rhosts and ~/.shosts files
-#IgnoreRhosts yes
-
-# To disable tunneled clear text passwords, change to no here!
-#PasswordAuthentication yes
-#PermitEmptyPasswords no
-PasswordAuthentication yes
-
-# Change to no to disable s/key passwords
-#ChallengeResponseAuthentication yes
-#ChallengeResponseAuthentication no
-
-# Kerberos options
-#KerberosAuthentication no
-#KerberosOrLocalPasswd yes
-#KerberosTicketCleanup yes
-#KerberosGetAFSToken no
-#KerberosUseKuserok yes
-
-# GSSAPI options
-#GSSAPIAuthentication yes
-GSSAPICleanupCredentials no
-#GSSAPIStrictAcceptorCheck yes
-#GSSAPIKeyExchange no
-#GSSAPIEnablek5users no
-
-# Set this to 'yes' to enable PAM authentication, account processing,
-# and session processing. If this is enabled, PAM authentication will
-# be allowed through the ChallengeResponseAuthentication and
-# PasswordAuthentication.  Depending on your PAM configuration,
-# PAM authentication via ChallengeResponseAuthentication may bypass
-# the setting of "PermitRootLogin without-password".
-# If you just want the PAM account and session checks to run without
-# PAM authentication, then enable this but set PasswordAuthentication
-# and ChallengeResponseAuthentication to 'no'.
-# WARNING: 'UsePAM no' is not supported in Red Hat Enterprise Linux and may cause several
-# problems.
-#UsePAM yes
-
-#AllowAgentForwarding yes
-#AllowTcpForwarding yes
-#GatewayPorts no
-#X11DisplayOffset 10
-#X11UseLocalhost yes
-#PermitTTY yes
-#PrintMotd yes
-#PrintLastLog yes
-#TCPKeepAlive yes
-#UseLogin no
-#UsePrivilegeSeparation sandbox
-#PermitUserEnvironment no
-#Compression delayed
-#ClientAliveInterval 0
-#ClientAliveCountMax 3
-#ShowPatchLevel no
-#UseDNS yes
-#PidFile /var/run/sshd.pid
-#PermitTunnel no
-#ChrootDirectory none
-#VersionAddendum none
-
-# no default banner path
-#Banner none
-
-# Accept locale-related environment variables
-AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
-AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
-AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
-AcceptEnv XMODIFIERS
-
-# override default of no subsystems
-Subsystem   sftp    /usr/libexec/openssh/sftp-server
-
-# Example of overriding settings on a per-user basis
-#Match User anoncvs
-#   AllowTcpForwarding no
-#   PermitTTY no
-#   ForceCommand cvs server
-X11Forwarding yes
-MaxStartups 1024
-KerberosAuthentication no
-PubkeyAuthentication yes
-UsePAM yes
-AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
-GSSAPIAuthentication yes
-ChallengeResponseAuthentication yes
-AuthorizedKeysCommandUser nobody
-EOF
-
-log info /etc/ssh/sshd_config
 
 authconfig --update --enablesssd --enablesssdauth
+
+cat <<EOF > /etc/krb5.conf
+includedir /var/lib/sss/pubconf/krb5.include.d/
+
+[libdefaults]
+  default_realm = $realm
+  dns_lookup_realm = true
+  dns_lookup_kdc = true
+  rdns = false
+  ticket_lifetime = 24h
+  forwardable = yes
+  udp_preference_limit = 0
+  default_ccache_name = KEYRING:persistent:%{uid}
+
+[realms]
+  $realm = {
+    pkinit_anchors = FILE:/etc/ipa/ca.crt
+
+  }
+
+[domain_realm]
+  .$domain = $realm
+  $domain = $realm
+EOF
+
 curl -o /etc/ipa/ca.crt http://$headnode/ipa/config/ca.crt
-certutil -A -d /etc/ipa/nssdb -n "IPA CA" -t CT,C,C -a -i /etc/ipa/ca.crt
+certutil -A -d /etc/ipa/nssdb -n "IPA CA" -t CT,C,C -a -i /etc/ipa/ca.crt 
 systemctl start certmonger.service
 systemctl enable certmonger.service
-ipa-getcert request -d /etc/pki/nssdb -n Server-Cert -K HOST/$hostname -N "CN=$hostname,O=$realm"
+ipa-getcert request -d /etc/pki/nssdb -n Server-Cert -K HOST/$nodename -N "CN=$nodename,O=$realm"
+authconfig --nisdomain=client.example.com --update
 systemctl restart rhel-domainname.service
+
+cat <<EOF >>  /etc/nsswitch.conf
+sudoers: files sss
+EOF
 systemctl restart sssd.service
+
