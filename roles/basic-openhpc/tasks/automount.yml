@@ -12,17 +12,13 @@
 
 - name: Create the automount script file to be run at each compute note boot process
   copy:
-    dest: /install/postscripts/versatushpc/freeipa-automount-compute
+    dest: /opt/versatushpc/xcat/postscripts/freeipa-automount-compute
     content: |
       #!/bin/sh
       ipa-client-automount --location=compute --unattended
-      EOF
-    mode: 755
+    mode: '0755'
 
 - name: Add the auto mount script to xCAT defaults on compute nodes
   shell: |
     source /etc/profile.d/xcat.sh
-    tabdump postscripts > postscripts.csv
-    sed -i '3i"compute","versatushpc/freeipa-automount-compute",,,' postscripts.csv
-    tabrestore postscripts.csv
-    rm -rf postscripts.csv
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postscripts=versatushpc/freeipa-automount-compute

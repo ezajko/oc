@@ -1,3 +1,4 @@
+- import_tasks: completions.yaml
 - import_tasks: install.yml
 - import_tasks: site.yml
 - import_tasks: network.yml

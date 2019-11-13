@@ -1,6 +1,12 @@
+- name: Create /opt/versatushpc/etc
+  file:
+    state: directory
+    path: /opt/versatushpc/etc
+    mode: '0755'
+
 - name: Create versatushpc-release
   copy:
-    dest: /etc/versatushpc-release
+    dest: /opt/versatushpc/etc/release
     content: |
       RELEASE=0.1-DEVELOPMENT
       VENDOR=

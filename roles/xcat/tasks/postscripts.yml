@@ -5,24 +5,3 @@
     sed -i 's/remoteshell\,//' postscripts.csv
     tabrestore postscripts.csv
     rm -rf postscripts.csv
-
-- name: Create postscripts versatushpc folder
-  file:
-    state: directory
-    path: /install/postscripts/versatushpc
-
-- name: Create freeipa postscript
-  copy:
-    dest: /install/postscripts/versatushpc/freeipa
-    mode: '0755'
-    content: |
-      #!/bin/sh
-      ipa-client-install --domain={{ domain_name }}  -p admin -w "{{ ipaadmin_password }}" --enable-dns-updates --force-join -U
-
-- name: Install freeipa postscript
-  shell: |
-    source /etc/profile.d/xcat.sh
-    tabdump postscripts > postscripts.csv
-    sed -i 's/syncfiles/syncfiles\,versatushpc\/freeipa/' postscripts.csv
-    tabrestore postscripts.csv
-    rm -rf postscripts.csv

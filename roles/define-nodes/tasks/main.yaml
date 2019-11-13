@@ -1,0 +1,75 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes.yml
+
+- name: Check that nodes are defined
+  assert:
+    that:
+      - nodes is defined
+      - '"ohpc-slurm-server" in ansible_facts.packages'
+
+- name: Define nodes
+  loop: '{{ nodes }}'
+  loop_control:
+    index_var: i
+    loop_var: node
+  shell: |
+    source /etc/profile.d/xcat.sh
+    mkdef -f -t node \
+      {{ i | node_name }} \
+      ip={{ i | node_ip }} \
+      bmc={{ i | node_bmc }} \
+      mac={{ node.mac }} \
+      {% if service_network_enabled is defined and service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }} \
+      bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
+      mgt=ipmi \
+      groups=compute,all \
+      netboot=xnba \
+      arch=x86_64
+
+- name: Define hosts in PBS
+  when: "'pbspro-server-ohpc' in ansible_facts.packages"
+  shell: |
+    source /etc/profile.d/xcat.sh
+    for host in $(nodels); do
+      qmgr -c "create node $host"
+    done
+
+- when: "'ohpc-slurm-server' in ansible_facts.packages"
+  block:
+    - name: Define nodes in Slurm
+      loop: '{{ nodes }}'
+      loop_control:
+        loop_var: node
+        index_var: i
+      lineinfile:
+        line: 'NodeName={{ i | node_name }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+        state: present
+        dest: /etc/slurm/slurm.conf
+
+    - name: Define default queue for Slurm
+      lineinfile:
+        dest: /etc/slurm/slurm.conf
+        state: present
+        line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
+
+- name: Create host and attach image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    makehosts
+
+- name: Generate and pack image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    genimage centos7.6-x86_64-netboot-compute
+    packimage centos7.6-x86_64-netboot-compute
+
+- name: Run nodeset on new nodes
+  shell: |
+    source /etc/profile.d/xcat.sh
+    nodeset {{ nodes | length | nodes_names | join(",") }} osimage=centos7.6-x86_64-netboot-compute
+
+- name: Update dhcpd with nodes
+  shell: |
+    source /etc/profile.d/xcat.sh
+    makedhcp -a

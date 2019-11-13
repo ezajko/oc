@@ -1,0 +1,86 @@
+- name: Check for ISO
+  stat:
+    path: /root/CentOS-7-x86_64-DVD-1810.iso
+  register: iso
+  ignore_errors: yes
+
+- name: Download CentOS
+  get_url:
+    url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
+    dest: /root/CentOS-7-x86_64-DVD-1810.iso
+  when: iso.failed
+
+- name: Check for osimage
+  shell: /opt/xcat/bin/lsdef -t osimage -o centos7.6-x86_64-netboot-compute
+  register: osimage
+  ignore_errors: yes
+
+- name: Generate Image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    copycds /root/CentOS-7-x86_64-DVD-1810.iso
+  when: osimage.rc != 0
+
+- name: Create diretory
+  file:
+    state: directory
+    mode: '0755'
+    path: '/opt/versatushpc/{{ item }}'
+  loop:
+    - xcat
+    - xcat/postscripts
+    - xcat/postinstall
+
+- name: Create links
+  file:
+    state: link
+    src: /opt/versatushpc/xcat/postscripts
+    dest: /install/postscripts/versatushpc
+
+- name: Create add-cluster-key.sh postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/add-cluster-key
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      pubkey=$(cat ~/.ssh/id_ed25519.pub)
+      authorized_keys="$IMG_ROOTIMGDIR/root/.ssh/authorized_keys"
+      if [ ! -f $authorized_keys ]; then
+          mkdir -p $IMG_ROOTIMGDIR/root/.ssh || : # ignore error
+          chmod 0700 $IMG_ROOTIMGDIR/root/.ssh
+          echo "$pubkey" >> $authorized_keys
+      else
+          grep "$pubkey" $authorized_keys || echo "$pubkey" >> $authorized_keys
+      fi
+
+- name: Add postinstall to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
+
+- name: Add freeipa-client to the image
+  lineinfile:
+    create: yes
+    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    line: freeipa-client
+
+- name: Add compute.pkglist to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkglist=/opt/versatushpc/xcat/centos7.6-compute.pkglist
+
+- name: Add repositorioes to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir={{ item }}
+  loop:
+    # - http://vault.centos.org/7.6.1810/os/x86_64/
+    # - http://vault.centos.org/7.6.1810/updates/x86_64/
+    # - http://vault.centos.org/7.6.1810/extras/x86_64/
+    - http://mirror.centos.org/centos/7/os/x86_64/
+    - http://mirror.centos.org/centos/7/updates/x86_64/
+    - http://mirror.centos.org/centos/7/extras/x86_64/
+    - http://mirror.centos.org/centos/7/centosplus/x86_64/
+    - http://download.fedoraproject.org/pub/epel/7/x86_64
+    - http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
+    - http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7

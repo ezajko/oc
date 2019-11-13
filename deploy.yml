@@ -10,4 +10,10 @@
     - import_role: name=network
     - import_role: name=versatus
     - import_role: name=base-system
+      # - import_role: name=add-image
+      # - import_role: name=basic-openhpc
+      # - include_role: name=slurm
+      #   when: queue_system == "slurm"
+      # - import_role: name=ipa-install-identity-management-manually
+      # - import_role: name=define-nodes
 

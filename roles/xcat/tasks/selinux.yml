@@ -24,3 +24,31 @@
     semanage fcontext -a -t httpd_sys_content_t '/install(/.*)?'
     restorecon -R /install
     rm -rf /root/xCAT-httpd-read-tftpdir*
+
+- name: Create SELinux policy for xCAT genimage
+  copy:
+    dest: /root/xCAT-genimage-ldconfig-rw-tmpdir.te
+    content: |
+      module xCAT-genimage-ldconfig-rw-tmpdir 1.0;
+
+      require {
+          type initrc_tmp_t;
+          type ldconfig_t;
+          class lnk_file { create getattr unlink };
+          class file { create rename setattr };
+          class dir { add_name read remove_name write };
+      }
+
+      #============= ldconfig_t ==============
+
+      allow ldconfig_t initrc_tmp_t:dir { add_name read remove_name write };
+      allow ldconfig_t initrc_tmp_t:file { create rename setattr };
+      allow ldconfig_t initrc_tmp_t:lnk_file create;
+      allow ldconfig_t initrc_tmp_t:lnk_file { getattr unlink };
+
+- name: Install SELinux policy for xCAT genimage
+  shell: |
+    checkmodule -M -m -o /root/xCAT-genimage-ldconfig-rw-tmpdir.mod /root/xCAT-genimage-ldconfig-rw-tmpdir.te
+    semodule_package -o /root/xCAT-genimage-ldconfig-rw-tmpdir.pp -m /root/xCAT-genimage-ldconfig-rw-tmpdir.mod
+    semodule -i /root/xCAT-genimage-ldconfig-rw-tmpdir.pp
+    rm -rf /root/xCAT-genimage-ldconfig*

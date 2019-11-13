@@ -1,0 +1,38 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes.yml
+
+- copy:
+    src: templates/ipa-install-identity-management-client
+    dest: /opt/versatushpc/xcat/postscripts/ipa-install-identity-management-client
+    mode: '0755'
+
+- shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postscripts=versatushpc/ipa-install-identity-management-client
+
+- name: Create host
+  loop_control:
+    index_var: i
+  loop: '{{ nodes }}'
+  shell: |
+    echo {{ ipaadmin_password }} | kinit admin
+    echo {{ i | node_ip }}
+    ipa host-add --ip-address={{ i | node_ip }} {{ i | node_name }}.{{ domain_name }}
+    ipa host-add-managedby --hosts={{ fqdn }} {{ i | node_name }}.{{ domain_name }}
+    ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipaadmin_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k /opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab
+
+- name: Add keytab to synclists
+  lineinfile:
+    create: yes
+    path: /opt/versatushpc/xcat/centos7.6-compute.synclist
+    line: '/opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab -> ({{ i | node_name }}) /etc/krb5.keytab'
+  loop: '{{ nodes }}'
+  loop_control:
+    index_var: i
+    loop_var: node
+
+- name: Add syncfiles to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/opt/versatushpc/xcat/centos7.6-compute.synclist"

@@ -2,7 +2,7 @@
   lineinfile:
     state: present
     line: '{{ item }}'
-    path: /install/custom/netboot/centos7.6/compute.pkglist
+    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
   loop:
     - ohpc-base-compute
     - lmod-ohpc
@@ -10,7 +10,7 @@
 
 - name: Create postinstall script
   copy:
-    dest: /install/custom/postinstall/centos7.6/chrony-config.sh
+    dest: /opt/versatushpc/xcat/postinstall/chrony-config
     mode: '0755'
     content: |
       #!/bin/sh
@@ -20,4 +20,4 @@
 - name: Add postinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/chrony-config.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/chrony-config

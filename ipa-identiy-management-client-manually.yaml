@@ -1,0 +1,5 @@
+- hosts: sms
+  gather_facts: no
+  roles:
+    - ipa-install-identity-management-manually
+

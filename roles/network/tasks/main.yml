@@ -34,6 +34,9 @@
   shell: nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
   retries: 5
   delay: 3
+  register: nmcli
+  until: nmcli.rc == 0
+  ignore_errors: yes
 
 - name:
   shell: |
