@@ -29,7 +29,7 @@
     - name: Create postinstall script
       copy:
         mode: '0755'
-        dest: /install/custom/postinstall/centos7.6/hostbased-auth.sh
+        dest: /opt/versatushpc/xcat/postinstall/hostbased-auth.sh
         content: |
           #!/bin/sh -x
 
@@ -73,6 +73,6 @@
     - name: Add postinstall script to the image
       shell: |
         source /etc/profile.d/xcat.sh
-        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/install/custom/postinstall/centos7.6/hostbased-auth.sh
+        chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/hostbased-auth.sh
 
 
