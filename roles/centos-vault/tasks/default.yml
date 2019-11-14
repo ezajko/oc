@@ -50,6 +50,3 @@
   shell: |
     yum-config-manager --disable \*
     yum-config-manager --enable C7.6.1810-{base,updates,extras}
-
-- import_tasks: yum-update.yml
-
