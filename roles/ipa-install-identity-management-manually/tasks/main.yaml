@@ -3,13 +3,13 @@
     file: nodes.yml
 
 - copy:
-    src: templates/ipa-install-identity-management-client
-    dest: /opt/versatushpc/xcat/postscripts/ipa-install-identity-management-client
+    src: templates/ipa-client
+    dest: /opt/versatushpc/xcat/postscripts/ipa-client
     mode: '0755'
 
 - shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postscripts=versatushpc/ipa-install-identity-management-client
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute postscripts=versatushpc/ipa-client,versatuhpc/freeipa-automount-compute
 
 - name: Create host
   loop_control:
