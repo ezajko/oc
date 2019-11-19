@@ -59,10 +59,12 @@
     chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
 
 - name: Add freeipa-client to the image
-  lineinfile:
+  blockinfile:
     create: yes
     path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
-    line: freeipa-client
+    block: |
+      #NEW_INSTALL_LIST#
+      freeipa-client
 
 - name: Add compute.pkglist to the image
   shell: |

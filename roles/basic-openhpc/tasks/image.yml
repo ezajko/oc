@@ -4,6 +4,7 @@
     line: '{{ item }}'
     path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
   loop:
+    - '#NEW_INSTALL_LIST#'
     - ohpc-base-compute
     - lmod-ohpc
     - chrony

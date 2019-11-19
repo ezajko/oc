@@ -16,8 +16,8 @@
 - name: Create a Hostgroup with all the Compute Nodes inside FreeIPA
   shell: |
     ipa hostgroup-add --desc="Compute Nodes" compute
-  register: rc
-  ignore_errors: yes
+  register: cmd
+  failed_when: cmd.rc != 0 && cmd.stderr | regex_search("already exists") 
 
 - name: Create host
   loop_control:
@@ -25,13 +25,11 @@
   loop: '{{ nodes }}'
   shell: |
     echo {{ ipaadmin_password }} | kinit admin
+    echo {{ i | node_ip }}
     ipa host-add --ip-address={{ i | node_ip }} {{ i | node_name }}.{{ domain_name }}
     ipa host-add-managedby --hosts={{ fqdn }} {{ i | node_name }}.{{ domain_name }}
     ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipaadmin_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k /opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab
     ipa hostgroup-add-member --hosts={{ i | node_name }}.{{ domain_name }} compute
-  register: cmd
-  ignore_errors: yes
-
 
 - name: Setup Headnode as a client only to the compute nodes
   lineinfile:
