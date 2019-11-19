@@ -2,8 +2,7 @@
 - name: Check system version
   assert:
     that:
-      ansible_facts.distribution == "CentOS" and
-      ansible_facts.distribution_version == "7.6"
+      ansible_facts.distribution == "CentOS"
 
 - name: Cleanup hosts
   copy:
