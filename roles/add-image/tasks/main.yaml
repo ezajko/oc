@@ -1,3 +1,14 @@
+- name: Create VersatusHPC diretories
+  file:
+    state: directory
+    mode: '0755'
+    path: '/opt/versatushpc/{{ item }}'
+  loop:
+    - xcat
+    - xcat/postscripts
+    - xcat/postinstall
+    - etc
+
 - name: Check for ISO
   stat:
     path: /root/CentOS-7-x86_64-DVD-1810.iso
@@ -10,26 +21,12 @@
     dest: /root/CentOS-7-x86_64-DVD-1810.iso
   when: iso.failed
 
-- name: Check for osimage
-  shell: /opt/xcat/bin/lsdef -t osimage -o centos7.6-x86_64-netboot-compute
-  register: osimage
-  ignore_errors: yes
-
 - name: Generate Image
   shell: |
     source /etc/profile.d/xcat.sh
     copycds /root/CentOS-7-x86_64-DVD-1810.iso
-  when: osimage.rc != 0
-
-- name: Create diretory
-  file:
-    state: directory
-    mode: '0755'
-    path: '/opt/versatushpc/{{ item }}'
-  loop:
-    - xcat
-    - xcat/postscripts
-    - xcat/postinstall
+  args:
+    creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/
 
 - name: Create links
   file:
@@ -86,3 +83,24 @@
     - http://download.fedoraproject.org/pub/epel/7/x86_64
     - http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
     - http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7
+
+- name: Create keys
+  shell: |
+    for t in dsa ecdsa ed25519 rsa; do ssh-keygen -t $t -f /opt/versatushpc/xcat/ssh_host_${t}_key -N '' <<< y; done
+  args:
+    creates: '/opt/versatushpc/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
+
+- name: Create create-ssh-key postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/create-ssh-key
+    mode: '0755'
+    content: |
+      #!/bin/bash -x
+      \cp -vf /opt/versatushpc/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
+      exit 0
+      eof
+
+- name: Add postinstall for Create keys
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
