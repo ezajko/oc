@@ -1,0 +1,43 @@
+---
+- name: 'Install postfix'
+  package:
+    name: postfix
+    state: present
+
+- name: 'Create main.cf'
+  template:
+    dest: /etc/postfix/main.cf
+    src: main.cf.j2
+  notify: restart postfix
+
+- name: 'Configure SALS support'
+  import_tasks: sasl.yml
+  when: postfix_profile == "sasl"
+
+- name: 'Create master.cf'
+  template:
+    dest: /etc/postfix/master.cf
+    src: master.cf.j2
+  notify: restart postfix
+
+- name: 'Check for trasnport.db'
+  stat:
+    path: /etc/postfix/transport.db
+  register: transport_file
+
+- name: 'Create trasnport.db'
+  shell: postmap hash:/etc/postfix/transport
+  when: not transport_file.stat.exists
+  notify: restart postfix
+
+- name: 'Check for aliases'
+  stat:
+    path: /etc/postfix/aliases
+  register: aliases_file
+
+- name: 'Create aliases file'
+  file:
+    path: /etc/postfix/aliases
+    state: touch
+  when: not aliases_file.stat.exists
+  notify: restart postfix

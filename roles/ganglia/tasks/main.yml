@@ -1,5 +1,0 @@
----
-# tasks file for ganglia
-
-- include_tasks: default.yml
-  when: ganglia_enabled is defined and ganglia_enabled

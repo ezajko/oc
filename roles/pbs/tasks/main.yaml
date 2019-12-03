@@ -13,7 +13,7 @@
     . /etc/profile.d/pbs.sh
     # enable user environment propagation (needed for modules support)
     qmgr -c "set server default_qsub_arguments= -V"
-     
+
     # enable support for job accounting
     qmgr -c "set server job_history_enable=True"
 
@@ -42,7 +42,7 @@
       perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER={{ fqdn }}/" $IMG_ROOTIMGDIR/etc/pbs.conf
       perl -pi -e "s/\$clienthost \S+/\$clienthost {{ fqdn }}/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
       chroot $IMG_ROOTIMGDIR opt/pbs/libexec/pbs_habitat
- 
+
       # test this
       grep "\$usecp *:/home /home" || echo "\$usecp *:/home /home" >> $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
 

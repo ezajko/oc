@@ -1,0 +1,5 @@
+- name: Include tasks
+  when: postfix_install
+  include_tasks: default.yml
+  tags: postfix
+

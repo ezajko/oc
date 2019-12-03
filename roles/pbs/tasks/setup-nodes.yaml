@@ -3,8 +3,11 @@
       - nodes is defined
 
 - name: Setup Nodes
-  with_dict: "{{ nodes }}"
+  loop: "{{ nodes }}"
+  loop_control:
+    index_var: i
+    loop_var: node
   ignore_errors: yes
   shell: |
     source /etc/profile.d/pbs.sh
-    qmgr -c "create node {{ item.key }}"
+    qmgr -c "create node {{ i | node_name }}"

@@ -147,3 +147,77 @@
   help: |
     PBS default.place option
 
+- name: postfix_install
+  default: 'yes'
+  choices: ['yes', 'no']
+  private: no
+  prompt: 'Install postfix?'
+  help: |
+    Enable installation and configuration of postfix
+
+- name: postfix_profile
+  choices: [relay, local, sasl]
+  prompt: Choose a profile for postfix installation?
+  when: postfix_install
+  default: local
+  help: |
+    Select the profile. There are 3 options
+      local) All messages are delivered locally only
+      relay) Messages are relayed to another MTA
+      sasl)  Messages are relayed to another MTA, but it
+             uses user/password to connect to it
+
+- name: postfix_relay_server
+  prompt: Type the MTA to relay to?
+  when: postfix_install and postfix_profile == 'relay'
+  help: |
+    The relay address, ex: relay-smtp.example.com
+
+- name: postfix_mynetworks_more
+  prompt: 'Custom trusted networks? '
+  private: no
+  required: no
+  when: postfix_install
+  help: |
+    Comma separated list, localhost and cluster networks are already added by default
+    Ex: 192.168.123.0/24, 10.0.0.0/8
+
+- name: postfix_relay_server
+  prompt: 'Relay server?'
+  private: no
+  when: postfix_install and postfix_profile == 'relay'
+
+- name: postfix_relay_port
+  prompt: 'Relay port?'
+  private: no
+  when: postfix_install and postfix_profile == 'relay'
+  default: 25
+
+- name: postfix_sasl_user
+  prompt: 'SMTP user?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_password
+  prompt: 'SMTP password?'
+  private: yes
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_server
+  prompt: 'SMTP server?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_port
+  prompt: 'SMTP port?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+  default: 25
+
+- name: certificate_install
+  prompt: 'Create certificate'
+  default: 'yes'
+  choices: ['yes','no']
+  private: no
+  when: not postfix_install
+

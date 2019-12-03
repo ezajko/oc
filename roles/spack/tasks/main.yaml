@@ -1,6 +1,6 @@
 - name: Clone Spack
   shell: |
-    git clone https://bitbucket.versatushpc.com.br/scm/pkg/spack.git
+    git clone https://bitbucket.versatushpc.com.br/scm/pkg/spack.git /opt/spack
 
 - name: Create profile file
   copy:
@@ -14,7 +14,7 @@
       else
           export MODULEPATH=/opt/spack/share/spack/modules/linux-centos7-x86_64:$MODULEPATH
       fi
-       
+
       export LMOD_IGNORE_CACHE=1
 
 - name: Add compilers

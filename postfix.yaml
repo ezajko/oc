@@ -1,9 +1,12 @@
----
 - hosts: sms
-  gather_facts: yes
+  gather_facts: no
+  vars:
+    skip_questions: yes
   pre_tasks:
     - name: Get package facts
       package_facts:
         manager: auto
-  tasks:
-    - import_role: name=enable-hostbased-authentication 
+  roles:
+    - certificate
+    - postfix
+

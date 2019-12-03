@@ -1,8 +1,6 @@
 ---
 - hosts: sms
   gather_facts: no
-  vars:
-    skip_questions: yes
   pre_tasks:
     - package_facts:
         manager: auto

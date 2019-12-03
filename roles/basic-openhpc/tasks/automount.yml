@@ -15,6 +15,7 @@
     dest: /opt/versatushpc/xcat/postscripts/freeipa-automount-compute
     content: |
       #!/bin/sh
+      touch /var/lib/ipa-client/sysrestore/.workaround # workaround on ipa-client-automount bug
       ipa-client-automount --location=compute --unattended
     mode: '0755'
 

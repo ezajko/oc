@@ -1,0 +1,50 @@
+---
+# tasks file for roles/certificate
+
+- name: 'Install epel'
+  yum: name=epel-release state=present
+
+- name: 'Install setuptools'
+  yum:
+    name:
+      - python-setuptools
+      - python-pip
+    state: present
+
+# I can't install it from repository, is too old
+- name: 'Install PyOpenSSL'
+  pip:
+    name: PyOpenSSL
+    state: present
+    version: '>= 0.15'
+
+- name: 'Create private key'
+  openssl_privatekey:
+    path: '/etc/pki/tls/private/{{ tls_key_file }}'
+
+- name: 'Create request'
+  openssl_csr:
+    path: '/etc/pki/tls/certs/{{ tls_csr_file }}'
+    privatekey_path: '/etc/pki/tls/private/{{ tls_key_file }}'
+    common_name: '{{ tls_common_name }}'
+
+- name: 'Create selfsigned certificate'
+  openssl_certificate:
+    path: '/etc/pki/tls/certs/{{ tls_cert_file }}'
+    privatekey_path: '/etc/pki/tls/private/{{ tls_key_file }}'
+    csr_path: '/etc/pki/tls/certs/{{ tls_csr_file }}'
+    provider: selfsigned
+
+- name: 'Remove playbook dependences'
+  pip:
+    name: PyOpenSSL
+    state: absent
+
+# I tried to support Let's Encrypt but failed [1]. I
+# tried openssl_certificate module with acme provider.
+# There is another module named acme_certificate which
+# I didn't tried.
+#
+# [1] I got this error: 'TypeError: coercing to Unicode: need string or
+# buffer, NoneType found'
+# ... no idea and no time to debug
