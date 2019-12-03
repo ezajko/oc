@@ -1,0 +1,6 @@
+
+- hosts: sms
+  gather_facts: no
+  roles:
+    - infiniband
+
