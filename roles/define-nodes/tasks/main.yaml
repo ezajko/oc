@@ -33,6 +33,10 @@
       makedhcp {{ i | node_name }}
       ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k /opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab
 
+- name: Configure Infiniband
+  when: ib_stack != "none"
+  include_tasks: roles/infiniband/tasks/setup-nodes.yaml
+
 - name: Add keytab to compute.synclist
   lineinfile:
     path: /opt/versatushpc/xcat/compute.synclist

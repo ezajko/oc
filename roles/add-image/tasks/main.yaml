@@ -104,3 +104,7 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
+
+- name: Configure Infiniband
+  when: ib_stack != "none"
+  import_tasks: roles/tasks/infiniband/{{ ib_stack }}-image.yaml
