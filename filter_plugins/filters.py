@@ -68,7 +68,6 @@ def node_ip(i):
         )
     )
 
-
 @FilterModule.filter
 def node_bmc(i):
     return "{}".format(
@@ -78,3 +77,14 @@ def node_bmc(i):
             service_network_ip_start=extra_vars()["service_network_ip_start"],
         )
     )
+
+@FilterModule.filter
+def node_ib_ip(i):
+    return "{}".format(
+        render(
+            "ib_network_ip_start | ipmath(i)",
+            i=i,
+            ib_network_ip_start=extra_vars()["ib_network_ip_start"],
+        )
+    )
+
