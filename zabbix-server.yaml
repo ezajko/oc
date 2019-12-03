@@ -1,20 +1,4 @@
-- hosts: management
+- hosts: sms
   become: true
-  tasks:
-
-  - import_role: name=certificate
-
-  - name: postgresql
-    import_role: { name: geerlingguy.postgresql }
-
-  - name: zabbix server
-    import_role: { name: dj-wasabi.zabbix-server }
-
-  - name: zabbix web
-    import_role:
-      name: dj-wasabi.zabbix-web
-    vars:
-      zabbix_url: 'zabbix.management'
-      zabbix_url_aliases: ['/zabbix']
-      zabbix_apache_tls: yes
-      zabbix_apache_redirect: yes
+  roles:
+    - zabbix-server

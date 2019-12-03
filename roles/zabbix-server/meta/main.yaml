@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  author: Daniel Hilst
-  description: Create certificates
-  company: Versatus HPC Inc.
+  author: your name
+  description: your description
+  company: your company (optional)
 
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
@@ -15,7 +15,8 @@ galaxy_info:
   # - GPLv3
   # - Apache
   # - CC-BY
-  license: BSD
+  license: license (GPLv2, CC-BY, etc)
+
   min_ansible_version: 1.2
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
@@ -32,10 +33,7 @@ galaxy_info:
   #
   # platforms is a list of platforms, and each platform has a name and a list of versions.
   #
-  platforms:
-    - name: CentOS
-      versions:
-        - 7.6
+  # platforms:
   # - name: Fedora
   #   versions:
   #   - all
@@ -54,7 +52,7 @@ galaxy_info:
   #
   # NOTE: A tag is limited to a single word comprised of alphanumeric characters.
   #       Maximum 20 tags per role.
-
-dependencies: []
-# List your role dependencies here, one per line. Be sure to remove the '[]' above,
-# if you add dependencies to this list.
+dependencies:
+  - geerlingguy.postgresql
+  - dj-wasabi.zabbix-server
+  - dj-wasabi.zabbix-web
