@@ -1,3 +1,7 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes.yml
+
 - assert:
     that:
       - nodes is defined
@@ -7,7 +11,8 @@
   loop_control:
     index_var: i
     loop_var: node
-  ignore_errors: yes
+  register: qmgr
+  failed_when: qmgr.rc != 0 and qmgr.stderr is not search("15066") # http://community.pbspro.org/t/create-node-command/869
   shell: |
     source /etc/profile.d/pbs.sh
     qmgr -c "create node {{ i | node_name }}"
