@@ -1,0 +1,59 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+
+  - name: We don't use LaTeX from the distribution repositories since the packages are extremely old so we add the TeXLive distribution instead
+    get_url: 
+      url: http://mirror.ctan.org/systems/texlive/tlnet/install-tl.zip
+      dest: /root/install-tl.zip 
+
+  - name: Unzip TexLive
+    shell: unzip /root/install-tl.zip
+
+  - name: Create the default answers file to install the LaTeX distribution unattended
+    copy:
+      dest: texlive.profile
+      content: |
+        selected_scheme scheme-minimal
+        TEXDIR /usr/local/texlive/2019
+        TEXMFCONFIG ~/.texlive2019/texmf-config
+        TEXMFHOME ~/texmf
+        TEXMFLOCAL /usr/local/texlive/texmf-local
+        TEXMFSYSCONFIG /usr/local/texlive/2019/texmf-config
+        TEXMFSYSVAR /usr/local/texlive/2019/texmf-var
+        TEXMFVAR ~/.texlive2019/texmf-var
+        binary_x86_64-linux 1
+        instopt_adjustpath 0
+        instopt_adjustrepo 1
+        instopt_letter 0
+        instopt_portable 0
+        instopt_write18_restricted 1
+        tlpdbopt_autobackup 1
+        tlpdbopt_backupdir tlpkg/backups
+        tlpdbopt_create_formats 1
+        tlpdbopt_desktop_integration 1
+        tlpdbopt_file_assocs 1
+        tlpdbopt_generate_updmap 0
+        tlpdbopt_install_docfiles 1
+        tlpdbopt_install_srcfiles 1
+        tlpdbopt_post_code 1
+        tlpdbopt_sys_bin /usr/local/bin
+        tlpdbopt_sys_info /usr/local/share/info
+        tlpdbopt_sys_man /usr/local/share/man
+        tlpdbopt_w32_multi_user 1
+
+  - name:  Install the packages
+    shell: |
+      /root/install-tl --profile texlive.profile
+      /usr/local/texlive/2019/bin/x86_64-linux/tlmgr update self
+
+  - name: Remove the unneeded packages left on filesystem
+    shell: |
+      rm -rf /root/install-tl.zip
+      rm -rf /root/install-tl/texlive.profile
+
+
+
+  

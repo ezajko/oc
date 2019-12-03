@@ -1,0 +1,49 @@
+- name: Install PBS
+  yum:
+    state: present
+    name: pbspro-server-ohpc
+
+- name: Start PBS Pro
+  systemd:
+    name: pbs
+    state: started
+
+- name: Setup bsasic server settings
+  shell: |
+    . /etc/profile.d/pbs.sh
+    # enable user environment propagation (needed for modules support)
+    qmgr -c "set server default_qsub_arguments= -V"
+     
+    # enable support for job accounting
+    qmgr -c "set server job_history_enable=True"
+
+    # enable node sharing by default on PBS so the same node can be used within multiple jobs
+    qmgr -c "set server resources_default.place = {{ pbs_default_place }}"
+
+- name: Add packages to the image
+  lineinfile:
+    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    line: '{{ item }}'
+  loop:
+    - ohpc-base-compute
+    - lmod-ohpc
+    - pbspro-execution-ohpc
+
+- name: Leafname at pbs.conf
+  lineinfile:
+    path: /etc/pbs.conf
+    line: "PBS_LEAF_NAME={{ fqdn }}"
+
+- name: Create postinstall for PBS
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/pbs
+    mode: '0755'
+    content: |
+      perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER={{ fqdn }}/" $IMG_ROOTIMGDIR/etc/pbs.conf
+      perl -pi -e "s/\$clienthost \S+/\$clienthost {{ fqdn }}/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
+      chroot $IMG_ROOTIMGDIR opt/pbs/libexec/pbs_habitat
+ 
+      # test this
+      grep "\$usecp *:/home /home" || echo "\$usecp *:/home /home" >> $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
+
+      chroot $IMG_ROOTIMGDIR systemctl enable pbs

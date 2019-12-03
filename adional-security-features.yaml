@@ -1,0 +1,53 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+
+  - name: Check if EPEL is enabled:
+    shell: |
+      yum-config-manager --enable epel
+
+  - name: Install the fail2ban package with support for firewalld:
+    yum:
+      state: present
+      name: fail2ban-firewalld
+
+  - name: Create the local configuration file for fail2ban:
+    copy:
+      dest: /etc/fail2ban/jail.local
+      content: |
+        [DEFAULT]
+        # Ban IP/hosts for 24 hour ( 24h*3600s = 86400s):
+        bantime = 86400
+          
+        # An IP address/host is banned if it has generated "maxretry" during the last "findtime" seconds.
+        findtime = 600
+        maxretry = 3
+          
+        # "ignoreip" can be a list of IP addresses, CIDR masks or DNS hosts. Fail2ban
+        # will not ban a host which matches an address in this list. Several addresses
+        # can be defined using space (and/or comma) separator. For example, add your
+        # static IP address that you always use for login such as 103.1.2.3
+        #ignoreip = 127.0.0.1/8 ::1 103.1.2.3
+          
+        # Enable sshd protection
+        [sshd]
+        enabled = true
+
+  - name: Enable and start the service on the management node:
+    systemd:
+      state: started
+      enable: yes
+      name: fail2ban
+
+  - name: Process hiding in userspace for privacy:
+    lineinfile:
+      line: proc                    /proc   proc    defaults,hidepid=2  0 0
+      state: present
+      path: /etc/fstab 
+
+
+
+
+

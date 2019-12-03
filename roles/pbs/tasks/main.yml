@@ -1,3 +1,0 @@
-- name: 'Include tasks'
-  include_tasks: default.yml
-  when: queue_system == "pbs"

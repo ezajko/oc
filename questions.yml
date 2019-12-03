@@ -128,3 +128,22 @@
     This can be overriden by node basis. The password
     is setup for IPMI connection together with IPMI username
     asked before
+
+- name: 'queue_system'
+  prompt: 'Choose a queue system'
+  default: 'none'
+  choices:
+    - none
+    - slurm
+    - pbs
+  private: no
+
+- name: pbs_default_place
+  prompt: PBS default place
+  default: shared
+  choices: [shared, scatter]
+  private: no
+  when: queue_system == "pbs"
+  help: |
+    PBS default.place option
+

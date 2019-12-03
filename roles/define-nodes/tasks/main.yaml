@@ -63,21 +63,21 @@
 
       mkdir -p /etc/{ipa,ssh,sssd,openldap}/
 
-      : ${DHCPINTERFACES:=headnode.cluster.example.com|eth1} # fallback for testing
+      : ${DHCPINTERFACES:='headnode.cluster.example.com|eth1'} # fallback for testing
 
       domain="$(hostname -d)"
       nodename="$(hostname --fqdn)"
       basedn="$(domain_to_basedn $domain)"
-      headnode="${DHCPINTERFACES%|*}" # this came from xCAT site table
+      headnode=$(echo ${DHCPINTERFACES} | sed "s/'//g; s/\(.*\?\)|.*/\1/") # this came from xCAT site table
       realm="${domain^^}"
 
-      On the image
+      # On the image
       cat > /etc/sssd/sssd.conf << EOF
       [domain/$domain]
 
       cache_credentials = True
       krb5_store_password_if_offline = True
-      ipa_domain = cluster.example.com
+      ipa_domain = $domain
       id_provider = ipa
       auth_provider = ipa
       access_provider = ipa
@@ -242,7 +242,7 @@
     line: '{{ item }}'
     insertafter: '^Host *'
     path: /etc/ssh/ssh_config
-  loop: 
+  loop:
     - "\tHostbasedAuthentication yes"
     - "\tEnableSSHKeysign yes"
 
@@ -288,11 +288,7 @@
 
 - name: Define hosts in PBS
   when: "'pbspro-server-ohpc' in ansible_facts.packages"
-  shell: |
-    source /etc/profile.d/xcat.sh
-    for host in $(nodels); do
-      qmgr -c "create node $host"
-    done
+  include_tasks: roles/pbs/tasks/setup-nodes.yaml
 
 - when: "'ohpc-slurm-server' in ansible_facts.packages"
   block:
