@@ -1,0 +1,7 @@
+---
+- name: Install packages
+  yum:
+    state: present
+    name:
+      - "@Infiniband Support"
+      - infinipath-psm

@@ -1,0 +1,20 @@
+- name: Enable repos
+  shell: |
+    yum-config-manager --enable mlnx_ofed_dpdk_upstream_libs_latest
+
+- name: Get packages
+  package_facts:
+    manager: auto
+
+- name: "Mellanox OFED can't be installed together with: openmpi-gnu-ohpc, openmpi3-gnu8-ohpc"
+  assert:
+    that: 
+      - "'openmpi-gnu-ohpc' not in ansible_facts.packages" 
+      - "'openmpi3-gnu8-ohpc' not in ansible_facts.packages" 
+
+- name: Install packages
+  yum:
+    state: present
+    name:
+      - mlnx-ofed-dpdk-upstream-libs
+      - infinipath-psm
