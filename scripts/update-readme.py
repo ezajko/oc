@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Read prompts from deploy.yml and update README
+Read prompts from deploy.yaml and update README
 """
 
 import yaml
@@ -22,7 +22,7 @@ def read_section(markdown, section_name):
     return section
 
 
-questions = yaml.full_load(open("questions.yml"))
+questions = yaml.full_load(open("questions.yaml"))
 s = StringIO()
 print(
     """|name|prompt|default|choices|help|
