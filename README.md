@@ -24,16 +24,12 @@ git submodule update
 ## Runninng
 
 * Before begin make sure to have, at last, the list of mac of the nodes.
-* `ansible-playbook deploy.yml`
+* `ansible-playbook config.yaml`
   * Answer the questions to configure the environment.
-  * A new file named answers-<date>.yml will be created, where `<date>` is the date for today with the hour. This
+  * A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
     file contains all your answers to all previous questions, you will use this in the next steps.
-* Add the image `ansible-playbook add-image.yml -e @answers-<date>.yml`
-* Install OpenHPC `ansible-playbook basic-openhpc.yml -e @answers-<date>.yml`
-* If using Slurm, install Slurm `ansible-playbook slurm.yml -e @answers-<date>.yml`
 * Define nodes
-  * Edit `nodes.yml`. The variable structures need stay the same. Here is a list of variables and their meanings
-  
+  * Edit `nodes.yaml`. The variable structures need stay the same. Here is a list of variables and their meanings
     |variable|required|desc|
     |---|---|---|
     |mac|yes|mac addess of the node|
@@ -43,19 +39,29 @@ git submodule update
     |slurm.CoresPerSocket|only for Slurm|CoresPerSocket slurm.conf entry|
     |slurm.ThreadsPerCore|only for Slurm|ThreadsPerCore slurm.conf entry|
 
-    _* default here means the value present in `answers-<date>.yml`._
-  * Run `ansible-deploy define-nodes.yml -e @answers-<date>.yml`. The nodes will be
-    defined in the order they appear in the file.
+    _* default here means the value present in `answers-<date>.yaml`._
+* Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
+* Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`
+* Install OpenHPC `ansible-playbook basic-openhpc.yaml -e @answers-<date>.yaml`
+* If using Slurm, install Slurm `ansible-playbook slurm.yaml -e @answers-<date>.yaml`
+* If using PBS, install PBS `ansible-playbook pbs.yaml -e @answers-<date>.yaml`
+* To install ganglia `ansible-playbook ganglia.yaml -e @answers-<date>.yaml`
+* To configure infiniband `ansible-playbook infiniband.yaml -e @answers-<date>.yaml`
+* To configure postfix `ansible-playbook postfix.yaml -e @answers-<date>.yaml`
+* To configure spack `ansible-playbook spack.yaml -e @answers-<date>.yaml`
+* To install TexLive  `ansible-playbook latex-support.yaml -e @answers-<date>.yaml`
+* Finally to create nodes, run: `ansible-deploy define-nodes.yaml -e @answers-<date>.yaml`. The nodes will be
+  defined in the order they appear in the file.
 
 ---
 
 # Running single role
 
-`ansible -m include_role -a 'name=<ROLE_NAME>' sms -e @answers-...yml`
+`ansible -m include_role -a 'name=<ROLE_NAME>' sms -e @answers-...yaml`
 
 # Running single playbook
 
-`ansible -m include_tasks -a 'roles/xcat/tasks/install.yml' sms -e @answers-...yml`
+`ansible -m include_tasks -a 'roles/xcat/tasks/install.yaml' sms -e @answers-...yaml`
 
 # Questions
 |name|prompt|default|choices|help|
