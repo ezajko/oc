@@ -25,22 +25,22 @@ git submodule update
 
 * Before begin make sure to have, at last, the list of mac of the nodes.
 * Run `ansible-playbook config.yaml` to create configuration file
-  * Answer the questions to configure the environment.
-  * A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
-    file contains all your answers to all previous questions, you will use this in the next steps.
+    * Answer the questions to configure the environment.
+    * A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
+      file contains all your answers to all previous questions, you will use this in the next steps.
 
 * Define nodes
-  * Edit `nodes.yaml`. The variable structures need stay the same. Here is a list of variables and their meanings
-    |variable|required|desc|
-    |---|---|---|
-    |mac|yes|mac addess of the node|
-    |ipmi_user|no|IPMI username, if ommited the default* one is used|
-    |ipmi_password|no|IPMI password, if ommited the default* one is used|
-    |slurm.Sockets|only for Slurm|Sockets slurm.conf entry|
-    |slurm.CoresPerSocket|only for Slurm|CoresPerSocket slurm.conf entry|
-    |slurm.ThreadsPerCore|only for Slurm|ThreadsPerCore slurm.conf entry|
+    * Edit `nodes.yaml`. The variable structures need stay the same. Here is a list of variables and their meanings
+      |variable|required|desc|
+      |---|---|---|
+      |mac|yes|mac addess of the node|
+      |ipmi_user|no|IPMI username, if ommited the default* one is used|
+      |ipmi_password|no|IPMI password, if ommited the default* one is used|
+      |slurm.Sockets|only for Slurm|Sockets slurm.conf entry|
+      |slurm.CoresPerSocket|only for Slurm|CoresPerSocket slurm.conf entry|
+      |slurm.ThreadsPerCore|only for Slurm|ThreadsPerCore slurm.conf entry|
 
-    _* default here means the value present in `answers-<date>.yaml`._
+      _ default here means the value present in `answers-<date>.yaml`._
 
 * Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
 * Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`
