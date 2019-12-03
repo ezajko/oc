@@ -38,10 +38,9 @@ git submodule update
   _ default here means the value present in `answers-<date>.yaml`._
 
 * Run `ansible-playbook config.yaml` to create configuration file
-    * Answer the questions to configure the environment.
-    * A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
-      file contains all your answers to all previous questions, you will use this in the next steps.
-
+  - Answer the questions to configure the environment.
+  - A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
+    file contains all your answers to all previous questions, you will use this in the next steps.
 
 * Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
 * Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`
