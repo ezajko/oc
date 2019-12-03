@@ -1,0 +1,16 @@
+---
+# handlers file for ganglia
+- name: enable http and https in firewall
+  firewalld:
+    state: enabled
+    permanent: yes
+    service: '{{ item }}'
+  with_items:
+    - https
+    - http
+
+- name: restart httpd
+  service:
+    name: httpd
+    state: restarted
+  

@@ -1,0 +1,46 @@
+- name: Install Ganglia
+  package:
+    name: ohpc-ganglia
+    state: present
+  notify:
+    - enable http and https in firewall
+    - restart httpd
+
+# package module doesn't support installroot, shame
+- yum:
+    state: present
+    name: ganglia-gmond-ohpc
+    installroot: '{{ chroot }}'
+  notify:
+    - xcat genimage
+
+- copy:
+    src: /opt/ohpc/pub/examples/ganglia/gmond.conf
+    dest: /etc/ganglia/gmond.conf
+    remote_src: yes
+
+- replace:
+    path: /etc/ganglia/gmond.conf
+    regexp: '<sms>'
+    after: '^udp_send_channel {'
+    replace: '{{ cluster_name }}'
+
+- copy:
+    src: /etc/ganglia/gmond.conf
+    dest: '{{ chroot }}/etc/ganglia/gmond.conf'
+    remote_src: yes
+
+- lineinfile:
+    dest: '{{ chroot }}/etc/ganglia/gmond.conf'
+    line: 'gridname {{ cluster_name }}'
+
+- service:
+    enabled: yes
+    state: started
+    name: '{{ item }}'
+  with_items:
+    - gmond
+    - gmetad
+
+
+    
