@@ -5,16 +5,18 @@
   tasks:
 
   - name: We don't use LaTeX from the distribution repositories since the packages are extremely old so we add the TeXLive distribution instead
-    get_url: 
+    get_url:
       url: http://mirror.ctan.org/systems/texlive/tlnet/install-tl.zip
-      dest: /root/install-tl.zip 
+      dest: /root/install-tl.zip
+    retries: 5
+    delay: 1
 
   - name: Unzip TexLive
-    shell: unzip /root/install-tl.zip
+    shell: unzip /root/install-tl.zip <<< A
 
   - name: Create the default answers file to install the LaTeX distribution unattended
     copy:
-      dest: texlive.profile
+      dest: /root/texlive.profile
       content: |
         selected_scheme scheme-minimal
         TEXDIR /usr/local/texlive/2019
@@ -46,7 +48,7 @@
 
   - name:  Install the packages
     shell: |
-      /root/install-tl --profile texlive.profile
+      /root/install-tl*/install-tl --profile /root/texlive.profile
       /usr/local/texlive/2019/bin/x86_64-linux/tlmgr update self
 
   - name: Remove the unneeded packages left on filesystem
@@ -56,4 +58,4 @@
 
 
 
-  
+
