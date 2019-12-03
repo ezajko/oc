@@ -22,4 +22,4 @@
 - name: Add the auto mount script to xCAT defaults on compute nodes
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postscripts=versatushpc/freeipa-automount-compute
+    chdef -t osimage -o {{ genimage_name }} -p postscripts=versatushpc/freeipa-automount-compute
