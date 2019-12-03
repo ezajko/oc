@@ -35,7 +35,7 @@ git submodule update
   |slurm.CoresPerSocket|only for Slurm|CoresPerSocket slurm.conf entry|
   |slurm.ThreadsPerCore|only for Slurm|ThreadsPerCore slurm.conf entry|
 
-  _ default here means the value present in `answers-<date>.yaml`._
+  _* default here means the value present in `answers-<date>.yaml`._
 
 * Run `ansible-playbook config.yaml` to create configuration file
   - Answer the questions to configure the environment.
