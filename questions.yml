@@ -157,6 +157,7 @@
 
 - name: postfix_profile
   choices: [relay, local, sasl]
+  private: no
   prompt: Choose a profile for postfix installation?
   when: postfix_install
   default: local
@@ -220,4 +221,33 @@
   choices: ['yes','no']
   private: no
   when: not postfix_install
+
+- name: 'ib_stack'
+  prompt: 'Infiniband stack'
+  choices:
+    - none
+    - upstream
+    - mellanox
+  default: 'none'
+  private: no
+  help: |
+    none      => Do not install Infiniband at all
+    upstream  => The main stream OFED stack, opensource and provided by default repos
+    mellanox  => The Mellanox OFED stack
+
+- name: 'ib_network'
+  prompt: 'Application network'
+  private: no
+  default: 172.27.0.0/16
+  when: ib_stack != "none"
+  help: |
+    This is the network used by applications to talk, is a high speed network.
+
+    Expcets a network address like 172.27.0.0/16
+
+- name: ib_network_ip_start
+  prompt: Infiniband network first node IP address
+  when: ib_stack != "none"
+  default_template: ib_network | ipaddr('next_usable')
+  private: no
 
