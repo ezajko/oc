@@ -92,7 +92,6 @@ def normalize(answer):
 
 
 def write_answers_file(result):
-    result = {k: v for k, v in result.items() if not re.search("password", k)}
     result = result.copy()  # I dont to change result
     if result.get("answer_file"):
         return
