@@ -108,8 +108,10 @@
   vars:
     zabbix_url: '{{ ansible_host }}'
     zabbix_url_aliases: ['/zabbix']
-    zabbix_apache_tls: yes
-    zabbix_apache_redirect: yes
-    zabbix_server_tlscafile: /etc/pki/tls/certs/ca-bundle.crt
-    zabbix_server_tlscertfile: /etc/pki/certs/{{ ansible_host }}.cer
-    zabbix_server_tlskeyfile: /etc/pki/tls/private/{{ ansible_host }}.key
+
+- name: Add /zabbix to zabbix url
+  lineinfile:
+    path: /etc/httpd/conf.d/zabbix.conf
+    line: 'Alias /zabbix /usr/share/zabbix'
+    insertbefore: '<VirtualHost *:80>'
+    notify: Restart HTTPD
