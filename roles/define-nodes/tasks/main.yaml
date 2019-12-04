@@ -1,6 +1,6 @@
 - name: Load nodes variables
   include_vars:
-    file: nodes.yml
+    file: nodes.yaml
 
 - name: Check that nodes are defined
   assert:
