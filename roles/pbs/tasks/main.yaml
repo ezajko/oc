@@ -22,7 +22,7 @@
 
 - name: Add packages to the image
   lineinfile:
-    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    path: {{ pkglist }}
     line: '{{ item }}'
   loop:
     - ohpc-base-compute

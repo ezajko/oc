@@ -58,7 +58,7 @@
 - name: Add freeipa-client to the image
   blockinfile:
     create: yes
-    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    path: {{ pkglist }}
     block: |
       #NEW_INSTALL_LIST#
       freeipa-client
@@ -66,7 +66,7 @@
 - name: Add compute.pkglist to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p pkglist=/opt/versatushpc/xcat/centos7.6-compute.pkglist
+    chdef -t osimage -o {{ genimage_name }} -p pkglist={{ pkglist }}
 
 - name: Add repositorioes to the image
   shell: |

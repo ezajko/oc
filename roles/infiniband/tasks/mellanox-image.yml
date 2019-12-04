@@ -2,12 +2,12 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkgdir=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel7.7/x86_64
-  
+
 - name: Add packages to the image
   lineinfile:
     state: present
     line: '{{ item }}'
-    dest: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    dest: {{ pkglist }}
   loop:
     - mlnx-ofed-dpdk-upstream-libs
     - infinipath-psm

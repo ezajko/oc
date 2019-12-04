@@ -69,7 +69,7 @@
 - name: Add packages to the image
   lineinfile:
     line: ohpc-slurm-client
-    path: /opt/versatushpc/xcat/centos7.6-compute.pkglist
+    path: {{ pkglist }}
     state: present
 
 - name:  Create postinstall script
