@@ -55,7 +55,7 @@
 - name: Change the operating system image defaults to load the synclist
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/opt/versatushpc/xcat/centos7.6-compute.synclist"
+    chdef -t osimage -o {{ genimage_name }} synclists="/opt/versatushpc/xcat/centos7.6-compute.synclist"
 
 - name: Enable services for SLURM operation
   systemd:
@@ -97,4 +97,4 @@
 - name: Add posinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/slurm
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/slurm

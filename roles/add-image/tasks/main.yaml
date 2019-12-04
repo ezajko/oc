@@ -53,7 +53,7 @@
 - name: Add postinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
 
 - name: Add freeipa-client to the image
   blockinfile:
@@ -66,12 +66,12 @@
 - name: Add compute.pkglist to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkglist=/opt/versatushpc/xcat/centos7.6-compute.pkglist
+    chdef -t osimage -o {{ genimage_name }} -p pkglist=/opt/versatushpc/xcat/centos7.6-compute.pkglist
 
 - name: Add repositorioes to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p pkgdir={{ item }}
+    chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item }}
   loop:
     # - http://vault.centos.org/7.6.1810/os/x86_64/
     # - http://vault.centos.org/7.6.1810/updates/x86_64/
@@ -103,7 +103,7 @@
 - name: Add postinstall for Create keys
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
 
 - name: Configure Infiniband
   when: ib_stack != "none"

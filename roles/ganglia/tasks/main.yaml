@@ -32,7 +32,7 @@
 
 - shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
 
 - service:
     enabled: yes

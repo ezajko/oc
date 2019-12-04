@@ -50,7 +50,7 @@
 - name: Add compute.synclist to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute synclists="/opt/versatushpc/xcat/compute.synclist"
+    chdef -t osimage -o {{ genimage_name }} synclists="/opt/versatushpc/xcat/compute.synclist"
 
 - name: Create ipa-join postscript
   copy:
@@ -222,7 +222,7 @@
 - name: Add ipa-join to image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postscripts=versatushpc/ipa-join
+    chdef -t osimage -o {{ genimage_name }} -p postscripts=versatushpc/ipa-join
 
 - name: Create host group
   shell: |
@@ -288,7 +288,7 @@
 - name: Add hostbased-auth to image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o centos7.6-x86_64-netboot-compute -p postinstall=/opt/versatushpc/xcat/postinstall/hostbased-auth
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/hostbased-auth
 
 - name: Define hosts in PBS
   when: "'pbspro-server-ohpc' in ansible_facts.packages"
@@ -321,15 +321,15 @@
 - name: Generate and pack image
   shell: |
     source /etc/profile.d/xcat.sh
-    genimage centos7.6-x86_64-netboot-compute
-    packimage centos7.6-x86_64-netboot-compute
+    genimage {{ genimage_name }}
+    packimage {{ genimage_name }}
   tags:
     - genimage
 
 - name: Run nodeset on new nodes
   shell: |
     source /etc/profile.d/xcat.sh
-    nodeset {{ nodes | length | nodes_names | join(",") }} osimage=centos7.6-x86_64-netboot-compute
+    nodeset {{ nodes | length | nodes_names | join(",") }} osimage={{ genimage_name }}
 
 - name: Update dhcpd with nodes
   shell: |
