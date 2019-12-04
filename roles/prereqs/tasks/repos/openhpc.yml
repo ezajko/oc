@@ -3,22 +3,22 @@
     dest: /etc/yum.repos.d/OpenHPC.repo
     content: |
       [OpenHPC]
-      name=OpenHPC-1.3 - Base
-      baseurl=http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
+      name=OpenHPC-{{ ohpc_version }} - Base
+      baseurl=http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/CentOS_{{ el_major_version }}
       gpgcheck=1
       gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OpenHPC-1
       enabled=0
        
       [OpenHPC-updates]
-      name=OpenHPC-1.3 - Updates
-      baseurl=http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7
+      name=OpenHPC-{{ ohpc_version }} - Updates
+      baseurl=http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/updates/CentOS_{{ el_major_version }}
       gpgcheck=1
       gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OpenHPC-1
       enabled=0
        
       [OpenHPC-Sources]
-      name=OpenHPC-1.3 - Sources
-      baseurl=http://build.openhpc.community/OpenHPC:/1.3/sources/CentOS_7
+      name=OpenHPC-{{ ohpc_version }} - Sources
+      baseurl=http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/sources/CentOS_{{ el_major_version }}
       gpgcheck=1
       gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OpenHPC-1
       enabled=0
