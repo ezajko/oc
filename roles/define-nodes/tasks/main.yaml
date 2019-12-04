@@ -39,7 +39,7 @@
 
 - name: Add keytab to compute.synclist
   lineinfile:
-    path: /opt/versatushpc/xcat/compute.synclist
+    path: '{{ synclist }}'
     create: yes
     line: '/opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab -> ({{ i | node_name }}) /etc/krb5.keytab'
   loop: '{{ nodes }}'
@@ -50,7 +50,7 @@
 - name: Add compute.synclist to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} synclists="/opt/versatushpc/xcat/compute.synclist"
+    chdef -t osimage -o {{ genimage_name }} synclists="{{ synclist }}"
 
 - name: Create ipa-join postscript
   copy:
@@ -294,24 +294,9 @@
   when: "'pbspro-server-ohpc' in ansible_facts.packages"
   include_tasks: roles/pbs/tasks/setup-nodes.yaml
 
-- when: "'ohpc-slurm-server' in ansible_facts.packages"
-  block:
-    - name: Define nodes in Slurm
-      loop: '{{ nodes }}'
-      loop_control:
-        loop_var: node
-        index_var: i
-      lineinfile:
-        line: 'NodeName={{ i | node_name }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
-        state: present
-        dest: /etc/slurm/slurm.conf
-
-    - name: Define default queue for Slurm
-      lineinfile:
-        dest: /etc/slurm/slurm.conf
-        state: present
-        line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
-
+- name: Define hosts on Slurm
+  when: "'ohpc-slurm-server' in ansible_facts.packages"
+  include_tasks: roles/slurm/tasks/setup-nodes.yaml
 
 - name: Install pigz
   yum:

@@ -1,0 +1,24 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes.yaml
+
+- name: Check that nodes are defined
+  assert:
+    that:
+      - nodes is defined
+
+- name: Define nodes in Slurm
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+    index_var: i
+  lineinfile:
+    line: 'NodeName={{ i | node_name }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+    state: present
+    dest: /etc/slurm/slurm.conf
+
+- name: Define default queue for Slurm
+  lineinfile:
+    dest: /etc/slurm/slurm.conf
+    state: present
+    line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
