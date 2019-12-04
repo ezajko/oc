@@ -114,4 +114,4 @@
     path: /etc/httpd/conf.d/zabbix.conf
     line: 'Alias /zabbix /usr/share/zabbix'
     insertbefore: '<VirtualHost *:80>'
-    notify: Restart HTTPD
+  notify: Restart HTTPD
