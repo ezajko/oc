@@ -1,7 +1,7 @@
 - name: Add packages to the image
   lineinfile:
-    file: {{ pkglist }}
+    file: "{{ pkglist }}"
     line: "{{ item }}"
-  loop: 
+  loop:
     - "@Infiniband Support"
     - infinipath-psm

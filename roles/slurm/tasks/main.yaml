@@ -69,7 +69,7 @@
 - name: Add packages to the image
   lineinfile:
     line: ohpc-slurm-client
-    path: {{ pkglist }}
+    path: '{{ pkglist }}'
     state: present
 
 - name:  Create postinstall script
