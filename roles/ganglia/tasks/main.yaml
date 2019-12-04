@@ -10,7 +10,7 @@
 - name: Add ganglia to image
   lineinfile:
     line: ganglia-gmond-ohpc
-    path: {{ pkglist }}
+    path: '{{ pkglist }}'
 
 - copy:
     src: /opt/ohpc/pub/examples/ganglia/gmond.conf
