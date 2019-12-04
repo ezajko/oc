@@ -108,4 +108,4 @@
 
 - name: Configure Infiniband
   when: ib_stack != "none"
-  import_tasks: roles/infiniband/tasks/{{ ib_stack }}-image.yaml
+  include_task: roles/infiniband/tasks/{{ ib_stack }}-image.yaml
