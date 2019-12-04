@@ -44,11 +44,11 @@ git submodule update
  
 * Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
 * Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`
+* To configure infiniband `ansible-playbook infiniband.yaml -e @answers-<date>.yaml`
 * Install OpenHPC `ansible-playbook basic-openhpc.yaml -e @answers-<date>.yaml`
 * If using Slurm, install Slurm `ansible-playbook slurm.yaml -e @answers-<date>.yaml`
 * If using PBS, install PBS `ansible-playbook pbs.yaml -e @answers-<date>.yaml`
 * To install ganglia `ansible-playbook ganglia.yaml -e @answers-<date>.yaml`
-* To configure infiniband `ansible-playbook infiniband.yaml -e @answers-<date>.yaml`
 * To configure postfix `ansible-playbook postfix.yaml -e @answers-<date>.yaml`
 * To configure spack `ansible-playbook spack.yaml -e @answers-<date>.yaml`
 * To install TexLive  `ansible-playbook latex-support.yaml -e @answers-<date>.yaml`
