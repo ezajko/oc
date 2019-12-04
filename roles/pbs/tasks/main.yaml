@@ -47,3 +47,8 @@
       grep "\$usecp *:/home /home" || echo "\$usecp *:/home /home" >> $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
 
       chroot $IMG_ROOTIMGDIR systemctl enable pbs
+
+- name: Add postinstall
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/pbs
