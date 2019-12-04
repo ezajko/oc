@@ -39,8 +39,9 @@
     dest: /opt/versatushpc/xcat/postinstall/pbs
     mode: '0755'
     content: |
-      perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER={{ fqdn }}/" $IMG_ROOTIMGDIR/etc/pbs.conf
-      perl -pi -e "s/\$clienthost \S+/\$clienthost {{ fqdn }}/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
+      perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER=`hostname -f`/" $IMG_ROOTIMGDIR/etc/pbs.conf
+      perl -pi -e "s/\$clienthost \S+.*$/\$clienthost `hostname -f`/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
+      sed -i -e "/\$usecp `hostname -f`/d"  $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
       chroot $IMG_ROOTIMGDIR opt/pbs/libexec/pbs_habitat
 
       # test this
