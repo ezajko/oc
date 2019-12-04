@@ -54,3 +54,23 @@ pkglist: "/opt/versatushpc/xcat/compute.pkglist"
 genimage_name: centos7.7-x86_64-netboot-compute
 synclist: "/opt/versatushpc/xcat/compute.synclist"
 chroot: "/install/netboot/centos{{ el_version }}/x86_64/compute/rootimg/"
+
+# Certificate role (not FreeIPA)
+certs_path: '/etc/pki/certs'
+keys_path: '/etc/pki/keys'
+tls_cert_file: '{{ fqdn }}.cer'
+tls_key_file: '{{ fqdn }}.key'
+tls_csr_file: '{{ fqdn }}.csr'
+tls_common_name: '{{ fqdn }}'
+tls_cert: '{{ certs_path }}/{{ tls_cert_file }}'
+tls_key: '{{ keys_path }}/{{ tls_key_file }}'
+tls_csr: '/tmp/{{ tls_csr_file }}'
+
+
+# Zabbix
+zabbix_version: 4.0
+zabbix_url: '{{ ansible_hostname }}'
+zabbix_apache_tls: yes
+zabbix_apache_redirect: yes
+zabbix_apache_tls_crt: '{{ tls_cert }}'
+zabbix_apache_tls_key: '{{ tls_key }}'
