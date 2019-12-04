@@ -9,7 +9,6 @@
     dest: /etc/profile.d/versatushpc-spack.sh
     mode: '0755'
     content: |
-      #!/bin/sh
       if [ $EUID -eq 0 ] ; then
           source /opt/spack/share/spack/setup-env.sh
           source /opt/spack/share/spack/spack-completion.bash
