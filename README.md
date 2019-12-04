@@ -15,7 +15,7 @@ has ansible 2.4, which is incompatible with this playbook!_
 
 
 ```
-git clone --recursive https://bitbucket.versatushpc.com.br/scm/sv/deploy.git
+git clone --recursive https://bitbucket.versatushpc.com.br/scm/sv/deploy-2.0.git
 cd deploy
 git submodule init
 git submodule update
