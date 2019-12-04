@@ -1,6 +1,8 @@
 - name: Clone Spack
   shell: |
     git clone https://bitbucket.versatushpc.com.br/scm/pkg/spack.git /opt/spack
+  register: git
+  failed_when: git.rc != 0 and git.stderr is not search("already exists")
 
 - name: Create profile file
   copy:
@@ -32,6 +34,7 @@
 
 - name: Enable the directories on IPA with automount
   shell: |
+    kinit admin <<< {{ ipaadmin_password }}
     ipa automountmap-add compute auto.spack
     ipa automountkey-add compute auto.master --key=/opt/spack --info=auto.spack
     ipa automountkey-add compute auto.spack --key="*" --info="-fstype=nfs headnode.cluster.example.com:/opt/spack/&"
