@@ -49,3 +49,16 @@
   shell: |
     rm -rf /root/install-tl.zip
     rm -rf /root/install-tl/texlive.profile
+
+- name: Create profile file
+  copy:
+    dest: /etc/profile.d/versatushpc-texlive.sh
+    content: |
+      export MANPATH=$MANPATH:/usr/local/texlive/2019/texmf-dist/doc/man to MANPATH.
+      export INFOPATH=$INFOPATH:/usr/local/texlive/2019/texmf-dist/doc/info to INFOPATH.
+      export PATH=$PATH:/usr/local/texlive/2019/bin/x86_64-linux
+
+- name: Validating
+  shell: |
+    . /etc/profile.d/versatushpc-texlive.sh
+    tlmgr --version
