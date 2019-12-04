@@ -115,3 +115,10 @@
     line: 'Alias /zabbix /usr/share/zabbix'
     insertbefore: '<VirtualHost *:80>'
   notify: Restart HTTPD
+
+- name: Remove double Listen from Apache
+  lineinfile:
+    path: /etc/httpd/conf.d/ssl.conf
+    line: Listen 443 https
+    state: absent
+

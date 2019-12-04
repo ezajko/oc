@@ -1,8 +1,8 @@
 ---
 # tasks file for roles/certificate
 
-- name: 'Install epel'
-  yum: name=epel-release state=present
+- name: 'Enable epel'
+  shell: yum-config-manager --enable epel
 
 - name: 'Install setuptools'
   yum:

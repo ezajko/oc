@@ -48,8 +48,8 @@ synclist: "/opt/versatushpc/xcat/compute.synclist"
 chroot: "/install/netboot/centos{{ el_version }}/x86_64/compute/rootimg/"
 
 # Certificate role (not FreeIPA)
-certs_path: '/etc/pki/certs'
-keys_path: '/etc/pki/keys'
+certs_path: '/etc/pki/tls/certs'
+keys_path: '/etc/pki/tls/private'
 tls_cert_file: '{{ fqdn }}.cer'
 tls_key_file: '{{ fqdn }}.key'
 tls_csr_file: '{{ fqdn }}.csr'
