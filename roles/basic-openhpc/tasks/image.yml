@@ -2,7 +2,7 @@
   lineinfile:
     state: present
     line: '{{ item }}'
-    path: {{ pkglist }}
+    path: '{{ pkglist }}'
   loop:
     - '#NEW_INSTALL_LIST#'
     - ohpc-base-compute
