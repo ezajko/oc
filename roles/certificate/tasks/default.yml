@@ -34,6 +34,10 @@
     csr_path: '/etc/pki/tls/certs/{{ tls_csr_file }}'
     provider: selfsigned
 
+- name: Remove PyOpenSSL
+  pip:
+    name: PyOpenSSL
+    state: absent
 # I tried to support Let's Encrypt but failed [1]. I
 # tried openssl_certificate module with acme provider.
 # There is another module named acme_certificate which

@@ -11,22 +11,23 @@
 
 - name: Check for ISO
   stat:
-    path: /root/CentOS-7-x86_64-DVD-1810.iso
+    path: '{{ iso_path }}{{ centos_iso }}'
   register: iso
   ignore_errors: yes
 
 - name: Download CentOS
   get_url:
-    url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
-    dest: /root/CentOS-7-x86_64-DVD-1810.iso
+    # url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
+    url: http://ftp.unicamp.br/pub/centos/{{ centos_version }}/isos/x86_64/{{ centos_iso }}
+    dest: '{{ iso_path }}{{ centos_iso }}'
   when: iso.failed
 
 - name: Generate Image
   shell: |
     source /etc/profile.d/xcat.sh
-    copycds /root/CentOS-7-x86_64-DVD-1810.iso
+    copycds {{ iso_path }}{{ centos_iso }}
   args:
-    creates: /install/netboot/centos7.6/x86_64/compute/rootimg/etc/
+    creates: /install/netboot/centos{{ el_version }}/x86_64/compute/rootimg/etc/
 
 - name: Create links
   file:
@@ -58,7 +59,7 @@
 - name: Add freeipa-client to the image
   blockinfile:
     create: yes
-    path: {{ pkglist }}
+    path: '{{ pkglist }}'
     block: |
       #NEW_INSTALL_LIST#
       freeipa-client
@@ -76,13 +77,13 @@
     # - http://vault.centos.org/7.6.1810/os/x86_64/
     # - http://vault.centos.org/7.6.1810/updates/x86_64/
     # - http://vault.centos.org/7.6.1810/extras/x86_64/
-    - http://mirror.centos.org/centos/7/os/x86_64/
-    - http://mirror.centos.org/centos/7/updates/x86_64/
-    - http://mirror.centos.org/centos/7/extras/x86_64/
-    - http://mirror.centos.org/centos/7/centosplus/x86_64/
-    - http://download.fedoraproject.org/pub/epel/7/x86_64
-    - http://build.openhpc.community/OpenHPC:/1.3/CentOS_7
-    - http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7
+    - http://mirror.centos.org/centos/{{ el_major_version }}/os/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/updates/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/extras/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/centosplus/x86_64/
+    - http://download.fedoraproject.org/pub/epel/{{ el_major_version }}/x86_64
+    - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/CentOS_{{ el_major_version }}
+    - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/updates/CentOS_{{ el_major_version }}
 
 - name: Create keys
   shell: |

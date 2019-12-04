@@ -7,24 +7,8 @@
       # For more information, refer to http://linux.mellanox.com
       #
       [mlnx_ofed_dpdk_upstream_libs_latest]
-      name=Mellanox Technologies rhel7.6-\$basearch mlnx_ofed_dpdk_upstream_libs latest version
-      baseurl=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel7.6/\$basearch
-      enabled=0
-      gpgkey=http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
-      gpgcheck=1
-  when: centos_version is defined and centos_version == "7.6"
-
-- name: Install Mellanox repository
-  copy:
-    dest: /etc/yum.repos.d/mellanox_mlnx_ofed_dpdk_upstream_libs.repo
-    content: |
-      #
-      # Mellanox Technologies Ltd. public repository configuration file.
-      # For more information, refer to http://linux.mellanox.com
-      #
-      [mlnx_ofed_dpdk_upstream_libs_latest]
-      name=Mellanox Technologies rhel7.7-\$basearch mlnx_ofed_dpdk_upstream_libs latest version
-      baseurl=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel7.7/\$basearch
+      name=Mellanox Technologies rhel{{ el_version }}-\$basearch mlnx_ofed_dpdk_upstream_libs latest version
+      baseurl=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel{{ el_version }}/\$basearch
       enabled=0
       gpgkey=http://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox
       gpgcheck=1

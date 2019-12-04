@@ -43,10 +43,10 @@
 
 - name: Create the list of required files to be synced to compute nodes with xCAT
   block:
-    - name: Create /opt/versatushpc/xcat/centos7.6-compute.synclist
+    - name: Create synclist
       lineinfile:
         create: yes
-        path: /opt/versatushpc/xcat/centos7.6-compute.synclist
+        path: {{ synclist }}
         line: '{{ item }}'
       loop:
         - /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
@@ -55,7 +55,7 @@
 - name: Change the operating system image defaults to load the synclist
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} synclists="/opt/versatushpc/xcat/centos7.6-compute.synclist"
+    chdef -t osimage -o {{ genimage_name }} synclists="{{ synclist }}"
 
 - name: Enable services for SLURM operation
   systemd:

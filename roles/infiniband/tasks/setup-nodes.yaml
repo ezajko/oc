@@ -15,13 +15,13 @@
     loop_var: node
   ignore_errors: yes
   shell: |
-    source /etc/profile.d/xcat.sh 
+    source /etc/profile.d/xcat.sh
     chdef -t node {{ i | node_name }} nicips.application={{ i | node_ib_ip }} nictypes.application="InfiniBand" nicnetworks.ib0=ib0
 
 - name: Configure Infiniband for head node
   when: ib_stack is defined and ib_stack != "none"
   ignore_errors: yes
   shell: |
-    source /etc/profile.d/xcat.sh 
+    source /etc/profile.d/xcat.sh
     chdef -t network -o application mask={{ ib_network | ipaddr('netmask') }} net={{ ib_network | ipaddr('next_usable') }}
     chdef compute -p postbootscripts=confignics

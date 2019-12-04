@@ -4,4 +4,4 @@
   roles:
     - role: ganglia
       ganglia_install: yes
-      chroot: /install/netboot/centos7.6/x86_64/compute/rootimg/
+      chroot: "{{ chroot }}"
