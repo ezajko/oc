@@ -22,7 +22,7 @@
 
 - name: Add packages to the image
   lineinfile:
-    path: {{ pkglist }}
+    path: '{{ pkglist }}'
     line: '{{ item }}'
   loop:
     - ohpc-base-compute
