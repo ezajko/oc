@@ -20,6 +20,7 @@
 
 - name: Add compilers
   shell: |
+    cd /root
     source /etc/profile.d/versatushpc-spack.sh
     spack compiler add /opt/ohpc/pub/compiler/gcc/8.3.0
 
