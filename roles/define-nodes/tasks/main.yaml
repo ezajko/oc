@@ -17,9 +17,9 @@
     mkdef -f -t node \
       {{ i | node_name }} \
       ip={{ i | node_ip }} \
-      bmc={{ i | node_bmc }} \
       mac={{ node.mac }} \
       {% if service_network_enabled is defined and service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }} \
+      bmc={{ i | node_bmc }} \
       bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
       mgt=ipmi \
       groups=compute,all \
