@@ -11,7 +11,7 @@
       - ohpc-base
       - docs-ohpc
 
-- name: Check if NTP is running
+- name: Check if chronyd is running
   systemd:
     name: chronyd
     state: started
