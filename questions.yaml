@@ -250,4 +250,3 @@
   when: ib_stack != "none"
   default_template: ib_network | ipaddr('next_usable')
   private: no
-
