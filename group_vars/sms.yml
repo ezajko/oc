@@ -62,11 +62,33 @@ tls_csr: '/tmp/{{ tls_csr_file }}'
 agent_server: 'zabbix.versatushpc.com.br'
 agent_serveractive: '{{ agent_server }}'
 zabbix_version: 4.0
-zabbix_url: '{{ ansible_hostname }}'
-zabbix_apache_tls: yes
-zabbix_apache_redirect: yes
-zabbix_apache_tls_crt: '{{ tls_cert }}'
-zabbix_apache_tls_key: '{{ tls_key }}'
+zabbix_repo_yum:
+  - name: zabbix
+    description: Zabbix Official Repository - $basearch
+    baseurl: http://repo.zabbix.com/zabbix/{{ zabbix_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
+    state: present
+  - name: zabbix-non-supported
+    description: Zabbix Official Repository non-supported - $basearch
+    baseurl: http://repo.zabbix.com/non-supported/rhel/{{ ansible_distribution_major_version }}/$basearch/
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
+    state: present
+zabbix_web_package_state: present
+zabbix_url: '{{ fqdn }}'
+zabbix_vhost: false
+zabbix_php_install: true
+zabbix_server_name: '{{ fqdn }}'
+zabbix_server_database_long: "{{ 'mysql' if queue_system == 'slurm' else 'postgresql' }}"
+zabbix_server_hostname: '{{ fqdn }}'
+zabbix_server_dbhost: 'localhost'
+zabbix_server_dbuser: 'zabbix'
+zabbix_server_dbpassword: 'S9h7$fZejwfC'
+zabbix_server_dbport: '{{ 5432 if zabbix_server_database_long == "postgresql" else 3306 }}'
+zabbix_websrv: ''
+zabbix_timezone: 'America/Sao_Paulo'
+
 
 # Test avoid early failures to make running multiple times better to test
 test: no
