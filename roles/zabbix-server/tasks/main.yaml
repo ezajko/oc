@@ -106,6 +106,48 @@
     zabbix_url: '{{ ansible_host }}'
     zabbix_url_aliases: ['/zabbix']
 
+- name: Add locale
+  lineinfile:
+    path: /etc/httpd/conf.d/zabbix.conf
+    regex: 'php_value date.timezone .*'
+    line: 'php_value date.timezone {{ timezone }}' 
+  vars:
+    timezone: America/Sao_Paulo
+
+- name: Install Zabbix agent in the image
+  lineinfile:
+    path: '{{ pkglist }}'
+    line: 'zabbix-agent'
+
+
+- name: Add Zabbix repository to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p pkglist={{ item.baseurl | replace("$basearch", "x86_64") }}
+  loop: '{{ zabbix_repo_yum }}'
+
+- name: Install Zabbix angent postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/zabbix-agent
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      chroot ${IMG_ROOTIMGDIR} systemctl enable zabbix-agent
+
+      cat << EOF > ${IMG_ROOTIMGDIR}/etc/zabbix/zabbix_agentd.conf
+      Server=$(hostname)
+      ServerActive=$(hostname)
+      HostnameItem=system.hostname
+      LogFile=/var/log/zabbix/zabbix_agentd.log
+      EOF
+
+- name: Add postinstall to the image
+  shell: | 
+    souce /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -o postinstall=/opt/versatushpc/xcat/postinstall/zabbix-agent
+    genimage {{ genimage_name }}
+    packimage {{ genimage_name }}
+ 
 - name: Restart Apache
   systemd:
     name: httpd
