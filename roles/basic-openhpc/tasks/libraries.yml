@@ -1,0 +1,75 @@
+---
+- name: "OpenHPC Install Development Tools"
+  yum:
+    state: present
+    name:
+      - ohpc-autotools
+      - EasyBuild-ohpc
+      - hwloc-ohpc
+      - spack-ohpc
+      - valgrind-ohpc
+      - gnu-compilers-ohpc
+      - gnu8-compilers-ohpc
+      - llvm5-compilers-ohpc
+      - mpich-gnu8-ohpc
+      - mpich-gnu-ohpc
+      - mvapich2-gnu8-ohpc
+      - mvapich2-gnu-ohpc
+      - ohpc-gnu8-mpich-parallel-libs
+      - ohpc-gnu8-mvapich2-parallel-libs
+      - ohpc-gnu8-runtimes
+      - ohpc-gnu8-serial-libs
+
+- name: Install OpenMPI
+  when: ib_stack != "mellanox"
+  yum:
+    state: present
+    name:
+      - openmpi-gnu-ohpc
+      - openmpi3-gnu8-ohpc
+      - lmod-defaults-gnu8-openmpi3-ohpc
+      - ohpc-gnu8-openmpi3-parallel-libs
+      - ohpc-gnu8-io-libs
+      - ohpc-gnu8-parallel-libs
+      - ohpc-gnu8-perf-tools
+      - ohpc-gnu8-python-libs
+
+- name: "OpenHPC MPI Stacks with Intel"
+  yum:
+    name:
+      - intel-compilers-devel-ohpc
+      - intel-mpi-devel-ohpc
+    state: present
+  when: intel is defined and intel == "yes"
+
+- name: "OpenHPC FOSS MPI Stacks with Intel"
+  yum:
+    state: present
+    name:
+      - openmpi3-intel-ohpc
+      - openmpi-intel-ohpc
+      - mpich-intel-ohpc
+      - mvapich2-intel-ohpc
+  when: intel is defined and intel == "yes"
+
+- name: "OpenHPC Performance Tools Intel"
+  yum:
+    state: present
+    name:
+      - ohpc-intel-perf-tools
+  when: intel is defined and intel == "yes"
+
+- name: "OpenHPC 3rd Parties Intel"
+  yum:
+    state: present
+    name:
+      - ohpc-intel-io-libs
+      - ohpc-intel-mpich-parallel-libs
+      - ohpc-intel-mvapich2-parallel-libs
+      - ohpc-intel-openmpi3-parallel-libs
+      - ohpc-intel-impi-parallel-libs
+      - ohpc-intel-perf-tools
+      - ohpc-intel-python-libs
+      - ohpc-intel-runtimes
+      - ohpc-intel-serial-libs
+  when: intel is defined and intel == "yes"

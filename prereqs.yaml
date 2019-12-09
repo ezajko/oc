@@ -1,0 +1,7 @@
+- hosts: sms
+  gather_facts: yes
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  tasks:
+    - import_role: name=prereqs

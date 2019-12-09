@@ -1,0 +1,4 @@
+- name: Restart HTTPD
+  systemd:
+    name: httpd
+    state: restarted

@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: ganglia
+      ganglia_install: yes
+      chroot: "{{ chroot }}"

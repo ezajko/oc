@@ -1,33 +1,26 @@
-- name: Install xcat-core repo
-  yum_repository:
-    name: xcat-core
-    file: xcat-core
-    description: xcat-core
-    baseurl: http://xcat.org/files/xcat/repos/yum/latest/xcat-core # latest here is lated xCAT
-    enabled: yes
-    gpgcheck: yes
-    gpgkey: http://xcat.org/files/xcat/repos/yum/latest/xcat-core/repodata/repomd.xml.key
+- name: Remove external IP from /etc/hosts
+  lineinfile:
+    state: absent
+    regexp: '^{{ ansible_facts[sms_eth_external]["ipv4"]["address"] }}\s+{{ fqdn }}\s+{{ cluster_name }}'
+    path: /etc/hosts
 
-- name: Install xcat-dep repo
-  yum_repository:
-    name: xcat-dep
-    file: xcat-dep
-    description: xcat-dep
-    baseurl: http://xcat.org/files/xcat/repos/yum/latest/xcat-dep/rh$releasever/$basearch
-    enabled: yes
-    gpgcheck: yes
-    gpgkey: http://xcat.org/files/xcat/repos/yum/latest/xcat-dep/rh$releasever/$basearch/repodata/repomd.xml.key
+- name: Enable xCAT repos
+  shell: |
+    yum-config-manager --enable xcat-dep
+    yum-config-manager --enable xcat-core
 
 - name: Install xCAT
   yum:
     name: xCAT
     state: present
 
-- selinux:
+- name: Enable SELinux
+  selinux:
     state: enforcing
     policy: targeted
 
-- systemd:
+- name: Enable Firewalld
+  systemd:
     name: firewalld
     enabled: yes
     state: started

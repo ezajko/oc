@@ -1,0 +1,5 @@
+- hosts: sms
+  gather_facts: no
+  tasks:
+  - debug:
+      msg: 'answer file created'

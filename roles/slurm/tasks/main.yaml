@@ -1,0 +1,100 @@
+- name: Check if OpenHPC and xCAT are installed
+  assert:
+    that:
+      - "'ohpc-base' in ansible_facts.packages"
+      - "'xCAT' in ansible_facts.packages"
+
+- name: Install SLURM
+  yum:
+    name: ohpc-slurm-server
+
+- name: Configure ClusterName settings in slurm.conf
+  lineinfile:
+    regex: ClusterName=\S+
+    line: ClusterName={{ fqdn.split('.')[1] }}
+    state: present
+    path: /etc/slurm/slurm.conf
+
+- name: Configure ControlMachine settings in slurm.conf
+  lineinfile:
+    regex: ControlMachine=\S+
+    line: ControlMachine={{ fqdn }}
+    state: present
+    path: /etc/slurm/slurm.conf
+
+- name: Disable default nodes
+  lineinfile:
+    regex: NodeName
+    state: absent
+    path: /etc/slurm/slurm.conf
+
+- name: Disable partitions
+  lineinfile:
+    regex: PartitionName
+    state: absent
+    path: /etc/slurm/slurm.conf
+
+- name: Make Return to Service more readily available
+  lineinfile:
+    regex: '^ReturnToService=\d'
+    line: ReturnToService=2
+    state: present
+    path: /etc/slurm/slurm.conf
+
+- name: Create the list of required files to be synced to compute nodes with xCAT
+  block:
+    - name: Create synclist
+      lineinfile:
+        create: yes
+        path: {{ synclist }}
+        line: '{{ item }}'
+      loop:
+        - /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
+        - /etc/munge/munge.key -> /etc/munge/munge.key
+
+- name: Change the operating system image defaults to load the synclist
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} synclists="{{ synclist }}"
+
+- name: Enable services for SLURM operation
+  systemd:
+    state: started
+    enabled: yes
+    name: '{{ item }}'
+  with_items:
+    - munge
+    - slurmctld
+
+- name: Add packages to the image
+  lineinfile:
+    line: ohpc-slurm-client
+    path: '{{ pkglist }}'
+    state: present
+
+- name:  Create postinstall script
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/slurm
+    mode: '0755'
+    content: |
+      if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
+          cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
+          sed -e '/\[Unit\]/a\StartLimitBurst=5\nStartLimitIntervalSec=3' \
+              -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \
+              -i $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
+          chroot $IMG_ROOTIMGDIR systemctl enable munge
+          chroot $IMG_ROOTIMGDIR systemctl enable slurmd
+      fi
+
+      if ! grep -q pam_slurm.so $IMG_ROOTIMGDIR/etc/pam.d/sshd; then
+          cat >> $IMG_ROOTIMGDIR/etc/pam.d/sshd <<EOF
+      # Block queue evasion
+      account    required     pam_slurm.so
+      EOF
+      fi
+
+
+- name: Add posinstall to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/slurm

@@ -1,0 +1,49 @@
+- name: Set hostname
+  hostname:
+    name: '{{ fqdn }}'
+
+- block:
+    - name: Install bind-utils
+      yum: name=bind-utils state=present
+    - name: Test name resolve
+      shell: host example.com
+      changed_when: false
+
+- name: Install needed network manager libs
+  package:
+    name:
+      - dbus
+      - NetworkManager-glib
+    state: present
+
+- name: "Setup internal interface"
+  nmcli:
+    type: ethernet
+    ifname: '{{ sms_eth_internal }}'
+    ip4: '{{ sms_ip  }}/{{ sms_network.split("/")[-1] }}'
+    state: present
+    autoconnect: yes
+    conn_name: '{{ sms_eth_internal }}'
+
+# https://github.com/ansible/ansible/issues/36615
+- name: Workaround nmcli bug
+  shell: |
+    nmcli c mod {{ sms_eth_internal }} ipv4.method manual
+
+- name: Reload connection
+  shell: nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
+  retries: 5
+  delay: 3
+  register: nmcli
+  until: nmcli.rc == 0
+  ignore_errors: yes
+
+- name:
+  shell: |
+    firewall-cmd --permanent --zone=trusted --change-interface={{ sms_eth_internal }}
+
+- name: Reload firewalld
+  systemd:
+    name: firewalld
+    state: reloaded
+

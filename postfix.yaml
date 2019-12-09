@@ -1,0 +1,12 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  pre_tasks:
+    - name: Get package facts
+      package_facts:
+        manager: auto
+  roles:
+    - certificate
+    - postfix
+

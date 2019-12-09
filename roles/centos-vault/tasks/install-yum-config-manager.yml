@@ -1,0 +1,8 @@
+
+- name: Install yum-config-manager from the vault to set up the repositories
+  yum:
+    disablerepo: '*'
+    enablerepo: C7.6.1810-base
+    name: yum-utils
+    state: present
+

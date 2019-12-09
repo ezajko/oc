@@ -1,0 +1,54 @@
+- name: Install bash completions
+  yum:
+    name: bash-completion
+    state: present
+
+- name: Add completion
+  copy:
+    dest: /etc/bash_completion.d/xcat.sh
+    content: |
+      osimages() {
+          lsdef -t osimage | cut -f1 -d' ' | paste -sd ' '
+      }
+
+      networks() {
+          lsdef -t network | cut -f1 -d' ' | paste -sd ' '
+      }
+
+      tables() {
+          tabdump | paste -sd ' '
+      }
+
+      nodes() {
+          nodels | paste -sd ' '
+      }
+
+      _xcat_complete() {
+          COMPREPLY=()
+          if [[ "${COMP_LINE}" =~ ^(ls|rm|ch|mk)def ]]; then
+              if [[ "${COMP_WORDS[-1]}" == "-t" ]] || [[ "${COMP_WORDS[-2]}" == "-t" ]]; then
+                  COMPREPLY=( $(compgen -W "$(tables)" -- ${COMP_WORDS[-1]}))
+              elif [[ "${COMP_LINE}" =~ "-t networks" ]]; then
+                  if  [[ "${COMP_WORDS[-2]}" == "-o" ]]; then
+                      COMPREPLY=( $(compgen -W "$(networks)" -- ${COMP_WORDS[-1]}) )
+                  fi
+              elif [[ "${COMP_LINE}" =~ "-t osimage" ]]; then
+                  if  [[ "${COMP_WORDS[-2]}" == "-o" ]]; then
+                      COMPREPLY=( $(compgen -W "$(osimages)" -- ${COMP_WORDS[-1]}) )
+                  fi
+              elif [[ "${COMP_LINE}" =~ "-t node" ]]; then
+                  if  [[ "${COMP_WORDS[-2]}" == "-o" ]]; then
+                      COMPREPLY=( $(compgen -W "$(nodes)" -- ${COMP_WORDS[-1]}) )
+                  fi
+              fi
+          elif [[ "${COMP_LINE}" =~ ^nodeset ]]; then
+              if  ([[ "${COMP_WORDS[-2]}" == "osimage" ]] && [[ "${COMP_WORDS[-1]}" == "=" ]]) || ([[ "${COMP_WORDS[-3]}" == "osimage" ]] && [[ "${COMP_WORDS[-2]}" == "=" ]]); then
+                  COMPREPLY=( $(compgen -W "$(osimages)" -- ${COMP_WORDS[-1]#*=}) )
+              fi
+          elif [[ "${COMP_LINE}" =~ ^(genimage|packimage) ]]; then
+              COMPREPLY=( $(compgen -W "$(osimages)" -- ${COMP_WORDS[-1]}) )
+          elif [[ "${COMP_LINE}" =~ ^tab(edit|restore|dump) ]]; then
+              COMPREPLY=( $(compgen -W "$(tables)" -- ${COMP_WORDS[-1]}) )
+          fi
+      }
+      complete -F _xcat_complete {ls,mk,ch,rm}def nodeset genimage packimage tab{edit,restore,dump}

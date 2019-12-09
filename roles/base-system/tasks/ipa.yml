@@ -1,0 +1,17 @@
+- include_role:
+    name: roles/freeipa/roles/ipaserver
+  vars:
+    state: present
+  when: "'ipa-server' not in ansible_facts.packages"
+
+- name: Run ipa dnszone-mod
+  shell: |
+    echo {{ ipaadmin_password }} | kinit admin
+    ipa dnszone-mod {{ domain_name }}. --allow-sync-ptr=true
+  ignore_errors: yes
+  register: ipadnszonemode
+
+- name: Check ipa dnszone-mode return
+  fail:
+    msg: "ipa dnszone-mod failed with error: {{ ipadnszonemode.stderr }}"
+  when: ipadnszonemode.rc != 0 and ipadnszonemode.stderr is not search("no modifications to be performed")

@@ -1,0 +1,34 @@
+---
+- name: Prepare
+  hosts: all
+  vars:
+    target: cluster
+    cluster_name: newcluster
+    cuda_install: false
+    domain_name: cluster
+    ib_stack: none
+    nodes_padding: '3'
+    nodes_prefix: node
+    nodes_separator: null
+    nvidia_install: false
+    postfix_install: true
+    postfix_mynetworks_more: null
+    postfix_profile: local
+    queue_system: none
+    sms_eth_external: eth0
+    sms_eth_internal: eth1
+    sms_ip: 10.1.0.254
+    sms_network: 10.1.0.0/16
+    sms_prefix: '16'
+    vhpc_install: false
+    xcat_dhcp_dynamicrange: 10.1.100.1-10.1.100.100
+
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  tasks:
+    - include_vars:
+        ../../../../group_vars/sms.yml
+
+    - include_role:
+        name: ../../../packages/

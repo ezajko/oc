@@ -1,0 +1,3 @@
+---
+- include_tasks: "{{ ib_stack }}.yml"
+  when: ib_stack != "none"

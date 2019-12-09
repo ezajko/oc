@@ -1,0 +1,10 @@
+- name: Fix ~/.ssh/config created by xCAT
+  lineinfile:
+    state: absent
+    path: /root/.ssh/config
+    regexp: StrictHostKeyChecking
+
+- openssh_keypair:
+    type: ed25519
+    comment: Default root keypair for cluster authentication
+    path: /root/.ssh/id_ed25519

@@ -1,0 +1,4 @@
+- hosts: sms
+  gather_facts: no
+  tasks:
+  - include_tasks: "../{{ file }}"

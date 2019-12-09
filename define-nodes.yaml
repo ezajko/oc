@@ -1,0 +1,8 @@
+---
+- hosts: sms
+  gather_facts: no
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  roles:
+    - define-nodes

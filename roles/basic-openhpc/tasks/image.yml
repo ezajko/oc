@@ -1,0 +1,24 @@
+- name: Add packages to image
+  lineinfile:
+    state: present
+    line: '{{ item }}'
+    path: '{{ pkglist }}'
+  loop:
+    - '#NEW_INSTALL_LIST#'
+    - ohpc-base-compute
+    - lmod-ohpc
+    - chrony
+
+- name: Create postinstall script
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/chrony-config
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      sed -i s/0.centos.pool.ntp.org/headnode.cluster.example.com/ $IMG_ROOTIMGDIR/etc/chrony.conf
+      sed -i /centos.pool/d $IMG_ROOTIMGDIR/etc/chrony.conf
+
+- name: Add postinstall to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/chrony-config

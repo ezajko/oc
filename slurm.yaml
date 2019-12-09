@@ -1,0 +1,9 @@
+- hosts: sms
+  gather_facts: no
+  pre_tasks:
+    - name: Get package facts
+      package_facts:
+        manager: auto
+  roles:
+    - slurm
+

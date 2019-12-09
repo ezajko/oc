@@ -1,0 +1,9 @@
+---
+# defaults file for roles/certificate
+cluster_name: 'newcluster'
+domain_name: 'clusterdomain'
+fqdn: '{{ cluster_name }}.{{ domain_name }}'
+tls_cert_file: '{{ fqdn }}.cer'
+tls_key_file: '{{ fqdn }}.key'
+tls_csr_file: '{{ fqdn }}.csr'
+tls_common_name: '{{ fqdn }}'

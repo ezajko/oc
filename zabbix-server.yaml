@@ -1,0 +1,4 @@
+- hosts: sms
+  become: true
+  roles:
+    - zabbix-server

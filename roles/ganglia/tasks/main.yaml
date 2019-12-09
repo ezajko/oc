@@ -1,0 +1,43 @@
+- name: Install Ganglia
+  package:
+    name: ohpc-ganglia
+    state: present
+  notify:
+    - enable http and https in firewall
+    - restart httpd
+
+# package module doesn't support installroot, shame
+- name: Add ganglia to image
+  lineinfile:
+    line: ganglia-gmond-ohpc
+    path: '{{ pkglist }}'
+
+- copy:
+    src: /opt/ohpc/pub/examples/ganglia/gmond.conf
+    dest: /etc/ganglia/gmond.conf
+    remote_src: yes
+
+- replace:
+    path: /etc/ganglia/gmond.conf
+    regexp: '<sms>'
+    after: '^udp_send_channel {'
+    replace: '{{ cluster_name }}'
+
+- copy:
+    dest: /opt/versatushpc/xcat/postinstall/ganglia
+    mode: '0755'
+    content: |
+      test -f $IMG_ROOTIMGDIR/etc/gmond.conf || cp -v /etc/gmond.conf $IMG_ROOTIMGDIR/etc/
+      grep 'gridname' $IMG_IMGROOTDIR/etc/gmond.conf || echo "gridname $(domainname)" >> $IMG_IMGROOTDIR/etc/gmond.conf
+
+- shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
+
+- service:
+    enabled: yes
+    state: started
+    name: '{{ item }}'
+  with_items:
+    - gmond
+    - gmetad

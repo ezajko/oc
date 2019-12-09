@@ -1,0 +1,20 @@
+---
+- hosts: sms
+  gather_facts: yes
+  pre_tasks:
+    - package_facts:
+        manager: auto
+  tasks:
+    # https://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisite://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisites
+    - import_role: name=prereqs
+    - import_role: name=network
+    - import_role: name=versatus
+    - import_role: name=base-system
+    # - import_role: name=add-image
+    # - import_role: name=basic-openhpc
+    # - include_role: name=slurm
+    #   when: queue_system == "slurm"
+    # - include_role: name=enable-hostbased-authentication
+    # - import_role: name=ipa-install-identity-management-manually
+    # - import_role: name=define-nodes
+

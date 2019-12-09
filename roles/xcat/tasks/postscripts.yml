@@ -1,0 +1,7 @@
+- name: Remove remoteshell from postscripts
+  shell: |
+    source /etc/profile.d/xcat.sh
+    tabdump postscripts > postscripts.csv
+    sed -i 's/remoteshell\,//' postscripts.csv
+    tabrestore postscripts.csv
+    rm -rf postscripts.csv

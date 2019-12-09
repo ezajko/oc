@@ -1,0 +1,23 @@
+- name: Check SASL file
+  stat:
+    path: /etc/postfix/sasl_password.db
+  register: sasl_file
+
+- name: Create SASL file
+  block:
+    - lineinfile:
+        dest: /etc/postfix/sasl_password
+        line: '[{{ postfix_sasl_server }}]:{{ postfix_sasl_port }} {{ postfix_sasl_user }}:{{ postfix_sasl_password }}'
+        create: true
+      notify: restart postfix
+
+    - file:
+        dest: /etc/postfix/sasl_password
+        mode: 0640
+
+    - command: postmap /etc/postfix/sasl_password
+
+    - file:
+        dest: /etc/postfix/sasl_password.db
+        mode: 0600
+  when: not sasl_file.stat.exists

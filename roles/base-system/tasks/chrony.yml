@@ -1,0 +1,31 @@
+- name: Disable NTP
+  systemd:
+    name: ntpd
+    enabled: false
+    state: stopped
+
+- name: Install chrony
+  yum:
+    name: chrony
+    state: present
+
+- name: Setup cronyd files
+  lineinfile:
+    dest: /etc/chrony.conf
+    regex: '{{ item.regex }}'
+    line: '{{ item.line }}'
+    state: present
+  loop:
+    - { regex: '^server 0.*', line: 'server 0.br.pool.ntp.org iburst' }
+    - { regex: '^server 1.*', line: 'server 1.br.pool.ntp.org iburst' }
+    - { regex: '^server 2.*', line: 'server 2.br.pool.ntp.org iburst' }
+    - { regex: '^server 3.*', line: 'server 3.br.pool.ntp.org iburst' }
+
+- name: Setup cronyd files
+  lineinfile:
+    dest: /etc/chrony.conf
+    line: '{{ item }}'
+    state: present
+  loop:
+    - 'allow {{ sms_network }}'
+    - 'local stratum 10'

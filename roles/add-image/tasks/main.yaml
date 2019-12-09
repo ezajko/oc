@@ -1,0 +1,111 @@
+- name: Create VersatusHPC diretories
+  file:
+    state: directory
+    mode: '0755'
+    path: '/opt/versatushpc/{{ item }}'
+  loop:
+    - xcat
+    - xcat/postscripts
+    - xcat/postinstall
+    - etc
+
+- name: Check for ISO
+  stat:
+    path: '{{ iso_path }}{{ centos_iso }}'
+  register: iso
+  ignore_errors: yes
+
+- name: Download CentOS
+  get_url:
+    # url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
+    url: http://ftp.unicamp.br/pub/centos/{{ centos_version }}/isos/x86_64/{{ centos_iso }}
+    dest: '{{ iso_path }}{{ centos_iso }}'
+  when: iso.failed
+
+- name: Generate Image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    copycds {{ iso_path }}{{ centos_iso }}
+  args:
+    creates: /install/netboot/centos{{ el_version }}/x86_64/compute/rootimg/etc/
+
+- name: Create links
+  file:
+    state: link
+    src: /opt/versatushpc/xcat/postscripts
+    dest: /install/postscripts/versatushpc
+
+- name: Create add-cluster-key.sh postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/add-cluster-key
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      pubkey=$(cat ~/.ssh/id_ed25519.pub)
+      authorized_keys="$IMG_ROOTIMGDIR/root/.ssh/authorized_keys"
+      if [ ! -f $authorized_keys ]; then
+          mkdir -p $IMG_ROOTIMGDIR/root/.ssh || : # ignore error
+          chmod 0700 $IMG_ROOTIMGDIR/root/.ssh
+          echo "$pubkey" >> $authorized_keys
+      else
+          grep "$pubkey" $authorized_keys || echo "$pubkey" >> $authorized_keys
+      fi
+
+- name: Add postinstall to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
+
+- name: Add freeipa-client to the image
+  blockinfile:
+    create: yes
+    path: '{{ pkglist }}'
+    block: |
+      #NEW_INSTALL_LIST#
+      freeipa-client
+
+- name: Add compute.pkglist to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p pkglist={{ pkglist }}
+
+- name: Add repositorioes to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item }}
+  loop:
+    # - http://vault.centos.org/7.6.1810/os/x86_64/
+    # - http://vault.centos.org/7.6.1810/updates/x86_64/
+    # - http://vault.centos.org/7.6.1810/extras/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/os/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/updates/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/extras/x86_64/
+    - http://mirror.centos.org/centos/{{ el_major_version }}/centosplus/x86_64/
+    - http://download.fedoraproject.org/pub/epel/{{ el_major_version }}/x86_64
+    - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/CentOS_{{ el_major_version }}
+    - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/updates/CentOS_{{ el_major_version }}
+
+- name: Create keys
+  shell: |
+    for t in dsa ecdsa ed25519 rsa; do ssh-keygen -t $t -f /opt/versatushpc/xcat/ssh_host_${t}_key -N '' <<< y; done
+  args:
+    creates: '/opt/versatushpc/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
+
+- name: Create create-ssh-key postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/create-ssh-key
+    mode: '0755'
+    content: |
+      #!/bin/bash -x
+      \cp -vf /opt/versatushpc/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
+      exit 0
+      eof
+
+- name: Add postinstall for Create keys
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
+
+- name: Configure Infiniband
+  when: ib_stack != "none"
+  include_tasks: roles/infiniband/tasks/{{ ib_stack }}-image.yaml

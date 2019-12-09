@@ -1,49 +1,22 @@
+# Versions
+el_major_version: 7
+el_minor_version: 7
+el_version: '{{ el_major_version }}.{{ el_minor_version }}'
+centos_release: '1908'
+centos_version: '{{ el_version }}.{{ centos_release }}'
+centos_vault_version: 7.6.1810 # used by centos-vault role
+ohpc_major_version: 1
+ohpc_minor_version: 3
+ohpc_version: '{{ ohpc_major_version }}.{{ ohpc_minor_version }}'
+
+# paths
 vydog_root: /opt/versatushpc/vydog/
 iso_path: /root/
-centos_iso: CentOS-7-x86_64-DVD-1810.iso
 
-# Centos DVD baseurl
-centos_dvd_mirror_baseurl: http://linorg.usp.br/CentOS/7/isos/x86_64/
-# Centos DVD checksum (sha256)
-centos_dvd_mirror_sha256: "6d44331cc4f6c506c7bbe9feb8468fad6c51a88ca1393ca6b8b486ea04bec3c1"
+# ISO
+centos_iso: CentOS-{{ el_major_version }}-x86_64-DVD-{{ centos_release }}.iso
 
-ohpc_repo_path: /etc/yum.repos.d/OpenHPC.repo
-xcat_profile: /etc/profile.d/xcat.sh
-chroot: /install/netboot/centos7.6/x86_64/compute/rootimg/
-genimage_name: centos7.6-x86_64-netboot-compute
-synclist_path: "/install/custom/netboot/"
-csvfile: "{{ lookup('file', 'cluster.csv') }}"
-vhpc_repo_url: http://pkgs.versatushpc.com.br/centos/7/versatushpc-config/x86_64/versatushpc-repo-centos7-config-0.4.1-1.noarch.rpm
-
-#ohpc_repo_url: https://github.com/openhpc/ohpc/releases/download/v1.3.GA/ohpc-release-1.3-1.el7.x86_64.rpm
-#ohpc_repo_url: http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/x86_64/ohpc-release-1.3-1.el7.x86_64.rpm
-ohpc_repo_url: http://build.openhpc.community/OpenHPC:/1.3/updates/CentOS_7/x86_64/ohpc-release-1.3-2.el7.x86_64.rpm
-cuda_repo_url: http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-9.1.85-1.x86_64.rpm
-xcat_core_repo_url: https://xcat.org/files/xcat/repos/yum/latest/xcat-core/xCAT-core.repo
-xcat_dep_repo_url: https://xcat.org/files/xcat/repos/yum/xcat-dep/rh7/x86_64/xCAT-dep.repo
-goxcat_url: https://raw.githubusercontent.com/xcat2/xcat-core/master/xCAT-server/share/xcat/tools/go-xcat
-
-essential_packages:
-  - "vim"
-  - "screen"
-  - "ntp"
-  - "epel-release"
-  - "yum-utils"
-
-debug_packages:
-  - "ipmitool"
-  - "htop"
-  - "atop"
-  - "strace"
-  - "sysstat"
-  - "lsof"
-  - "lshw"
-  - "nmap"
-  - "tcpdump"
-  - "procps-ng"
-  - "edac-utils"
-  - "smartmontools"
-
+# hostname stuff
 fqdn: '{{ cluster_name }}.{{ domain_name }}'
 
 # Postfix configuration
@@ -55,12 +28,6 @@ postfix_mynetworks:
   - '[::1]/128'
   - '{{ sms_network }}'
 
-# Zabbix role variables
-agent_server: 'zabbix.versatushpc.com.br'
-agent_serveractive: '{{ agent_server }}'
-zabbix_version: 3.4
-
-
 # FreeIPA variables
 ipaserver_hostname: '{{ fqdn }}'
 ipaserver_domain: '{{ domain_name }}'
@@ -71,8 +38,36 @@ ipaserver_reverse_zones: ['{{ sms_ip | reverse_name }}']
 ipaserver_auto_forwarders: yes
 ipaclient_mkhomedir: yes
 
+# Versatus variables
+versatus_hpc_ip: 179.228.138.121/32
+
+# xCAT variables
+pkglist: "/opt/versatushpc/xcat/compute.pkglist"
+genimage_name: "centos{{ el_version }}-x86_64-netboot-compute"
+synclist: "/opt/versatushpc/xcat/compute.synclist"
+chroot: "/install/netboot/centos{{ el_version }}/x86_64/compute/rootimg/"
+
+# Certificate role (not FreeIPA)
+certs_path: '/etc/pki/tls/certs'
+keys_path: '/etc/pki/tls/private'
+tls_cert_file: '{{ fqdn }}.cer'
+tls_key_file: '{{ fqdn }}.key'
+tls_csr_file: '{{ fqdn }}.csr'
+tls_common_name: '{{ fqdn }}'
+tls_cert: '{{ certs_path }}/{{ tls_cert_file }}'
+tls_key: '{{ keys_path }}/{{ tls_key_file }}'
+tls_csr: '/tmp/{{ tls_csr_file }}'
+
+# Zabbix
+agent_server: 'zabbix.versatushpc.com.br'
+agent_serveractive: '{{ agent_server }}'
+zabbix_version: 4.0
+zabbix_url: '{{ ansible_hostname }}'
+zabbix_apache_tls: yes
+zabbix_apache_redirect: yes
+zabbix_apache_tls_crt: '{{ tls_cert }}'
+zabbix_apache_tls_key: '{{ tls_key }}'
+
 # Test avoid early failures to make running multiple times better to test
 test: no
 
-# CentOS Vault version to pin
-centos_vault_version: 7.6.1810

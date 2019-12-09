@@ -1,0 +1,252 @@
+---
+- name: cluster_name
+  prompt: Hostname?
+  default: headnode
+  private: no
+
+- name: domain_name
+  prompt: Domain name?
+  default: cluster.example.com
+  private: no
+
+- name: ipaadmin_password
+  prompt: FreeIPA admin password
+  private: yes
+  validate:
+    - rule: len(answer) > 8
+      message: Message need to be greater than 8 in length
+
+- name: ipadm_password
+  private: yes
+  validate:
+    - rule: len(answer) > 8
+      message: Message need to be greater than 8 in length
+
+  prompt: FreeIPA Directory Manager password
+  help: |
+    FreeIPA Directory Manager password
+
+    It uses the same password as admin password entered before. This is used
+    for authenticating to LDAP.
+
+- name: nodes_prefix
+  prompt: Node prefix?
+  default: node
+  private: no
+
+- name: nodes_separator
+  prompt: Node name separtor (optional)
+  private: no
+  required: no
+
+- name: nodes_padding
+  prompt: Node name padding?
+  default: 3
+  private: no
+
+- name: sms_eth_external
+  prompt: External interface?
+  private: no
+  default: eth0
+
+- name: sms_eth_internal
+  prompt: Internal interface?
+  private: no
+  default: eth1
+
+- name: sms_network
+  prompt: Management network?
+  default: '172.26.0.0/16'
+  private: no
+  help: |
+    Management network is the primary network. Is the one by
+    which nodes boot and where services like DHCP, DNS, TFTP
+    talk.
+
+- name: sms_ip
+  prompt: Head node management network internal IP?
+  default_template: sms_network | ipaddr('last_usable')
+  private: no
+
+- name: sms_network_ip_start
+  prompt: Management network first node IP address
+  default_template: sms_network | ipaddr('next_usable')
+  private: no
+  help: |
+    This is the Management Network first node IP address. Remaning nodes
+    will be addressed by subsequent address.
+
+    Expects an IP in the form 10.1.0.1
+
+- name: xcat_dhcp_dynamicrange
+  prompt: xCAT DHCP Dynamic range?
+  default_template: "{{ sms_network | next_nth_usable(192*256) }}-{{ sms_network | next_nth_usable(192*256+255) }}"
+  private: no
+  help: |
+    Dynamic range used for xCAT during node discovery.
+
+    Expects a IP range like 1.1.1.1-1.1.1.10
+
+- name: service_network_enabled
+  prompt: Configure service network?
+  default: 'yes'
+  choices: ['yes', 'no']
+  private: no
+  help: Network used for BMC/IPMI services
+
+- name: service_network
+  prompt: Enter the service network
+  help: |
+    This is Service Network. Is the network used for BMC services and alike. It
+    expects to receive a CIDR notation address like 10.1.0.0/16. The network address
+    for the nodes are inferred from this network, starting from 10.1.0.2 up to
+    as many as nodes are defined on cluster.csv
+  default: 172.25.0.0/16
+  private: no
+  when: service_network_enabled
+
+- name: service_network_ip_start
+  prompt: Service network first node IP address
+  when: service_network_enabled
+  default_template: service_network | ipaddr('next_usable')
+  private: no
+  help: |
+    This is BMC address of the first node. The reimaing nodes
+    will be named with subsequent IP address.
+
+    Expects an IP address like 10.2.0.1
+
+- name: ipmi_user
+  private: no
+  default: ADMIN
+  prompt: What is the default IPMI username
+
+- name: ipmi_password
+  private: yes
+  prompt: IPMI default password
+  help: |
+    This can be overriden by node basis. The password
+    is setup for IPMI connection together with IPMI username
+    asked before
+
+- name: 'queue_system'
+  prompt: 'Choose a queue system'
+  default: 'none'
+  choices:
+    - none
+    - slurm
+    - pbs
+  private: no
+
+- name: pbs_default_place
+  prompt: PBS default place
+  default: shared
+  choices: [shared, scatter]
+  private: no
+  when: queue_system == "pbs"
+  help: |
+    PBS default.place option
+
+- name: postfix_install
+  default: 'yes'
+  choices: ['yes', 'no']
+  private: no
+  prompt: 'Install postfix?'
+  help: |
+    Enable installation and configuration of postfix
+
+- name: postfix_profile
+  choices: [relay, local, sasl]
+  private: no
+  prompt: Choose a profile for postfix installation?
+  when: postfix_install
+  default: local
+  help: |
+    Select the profile. There are 3 options
+      local) All messages are delivered locally only
+      relay) Messages are relayed to another MTA
+      sasl)  Messages are relayed to another MTA, but it
+             uses user/password to connect to it
+
+- name: postfix_relay_server
+  prompt: Type the MTA to relay to?
+  when: postfix_install and postfix_profile == 'relay'
+  help: |
+    The relay address, ex: relay-smtp.example.com
+
+- name: postfix_mynetworks_more
+  prompt: 'Custom trusted networks? '
+  private: no
+  required: no
+  when: postfix_install
+  help: |
+    Comma separated list, localhost and cluster networks are already added by default
+    Ex: 192.168.123.0/24, 10.0.0.0/8
+
+- name: postfix_relay_server
+  prompt: 'Relay server?'
+  private: no
+  when: postfix_install and postfix_profile == 'relay'
+
+- name: postfix_relay_port
+  prompt: 'Relay port?'
+  private: no
+  when: postfix_install and postfix_profile == 'relay'
+  default: 25
+
+- name: postfix_sasl_user
+  prompt: 'SMTP user?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_password
+  prompt: 'SMTP password?'
+  private: yes
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_server
+  prompt: 'SMTP server?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+
+- name: postfix_sasl_port
+  prompt: 'SMTP port?'
+  private: no
+  when: postfix_install and postfix_profile == 'sasl'
+  default: 25
+
+- name: certificate_install
+  prompt: 'Create certificate'
+  default: 'yes'
+  choices: ['yes','no']
+  private: no
+  when: not postfix_install
+
+- name: 'ib_stack'
+  prompt: 'Infiniband stack'
+  choices:
+    - none
+    - upstream
+    - mellanox
+  default: 'none'
+  private: no
+  help: |
+    none      => Do not install Infiniband at all
+    upstream  => The main stream OFED stack, opensource and provided by default repos
+    mellanox  => The Mellanox OFED stack
+
+- name: 'ib_network'
+  prompt: 'Application network'
+  private: no
+  default: 172.27.0.0/16
+  when: ib_stack != "none"
+  help: |
+    This is the network used by applications to talk, is a high speed network.
+
+    Expcets a network address like 172.27.0.0/16
+
+- name: ib_network_ip_start
+  prompt: Infiniband network first node IP address
+  when: ib_stack != "none"
+  default_template: ib_network | ipaddr('next_usable')
+  private: no

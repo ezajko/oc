@@ -1,0 +1,54 @@
+- name: Create /opt/versatushpc/etc
+  file:
+    state: directory
+    path: /opt/versatushpc/etc
+    mode: '0755'
+
+- name: Create versatushpc-release
+  copy:
+    dest: /opt/versatushpc/etc/release
+    content: |
+      RELEASE=0.1-DEVELOPMENT
+      VENDOR=
+      CONTRACT_NUMBER=
+      INSTALLER_NAME=
+      DEPLOY_STATUS=
+      RAS_START_DATE=
+      RAS_END_DATE=
+      CONTACT=
+      LOCATION=
+      NOTES=
+
+- name: Enable VersatusHPC IP on firewalld
+  firewalld:
+    zone: public
+    source: "{{ versatus_hpc_ip }}"
+    state: enabled
+    permanent: yes
+
+- name: Reload firewall
+  systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Create motd
+  template:
+    dest: /etc/motd
+    src: motd.j2
+
+- name: Create authorized_keys
+  copy:
+    dest: /root/.ssh/authorized_keys
+    mode: '0700'
+    content: |
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dM32vl7oMAI3H4aAgtSINRYc69+v9y4UobTiRX7b+ angelo
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILvv3VhslrVwZEpnK/sjJMs5AxH7EuaJYBTliKgXrVCL denis
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHEe84J84HpTAXZe7WNsxWtmacT1zBov+u6Q94wbOdiq eiji
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIlAXfqgsQSNGqbyIFDNucUTU9PfZXvcjPE3iph9eWjL fabricio
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBD1qtOpSgWSZAgqzBLhk0Rv6uCyLOJG2XY9o9SX0Y1H ferrao
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtewyz5PydEwYO8saMbywUEeuORzUkXq3owlwVuc+VF hilst
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBbdZaCeETGnREjn5O8hB90QTFX5d6DyEG5u0BhboBEd nelson
+
+- name: Run restorecon
+  shell: restorecon -R /root/.ssh
+

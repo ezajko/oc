@@ -1,0 +1,6 @@
+- hosts: sms
+  gather_facts: no
+  vars:
+    skip_questions: yes
+  tasks:
+    - import_role: name=basic-openhpc

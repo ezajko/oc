@@ -1,0 +1,24 @@
+# Prereqs
+- name: Check system version
+  assert:
+    that:
+      ansible_facts.distribution == "CentOS"
+
+- name: Cleanup hosts
+  copy:
+    dest: /etc/hosts
+    content: |
+      127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+      ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+
+# - name: Enable CentOS Vault
+#   include_role:
+#     name: centos-vault
+#   when: ansible_facts.distribution == "CentOS"
+- import_tasks: yum-update.yml
+- import_tasks: repos/epel.yml
+- import_tasks: repos/mellanox.yml
+- import_tasks: repos/openhpc.yml
+- import_tasks: repos/xcat.yml
+- import_tasks: repos/cuda.yml
+- import_tasks: repos/openzfs.yml
