@@ -30,9 +30,14 @@
       test -f $IMG_ROOTIMGDIR/etc/gmond.conf || cp -v /etc/gmond.conf $IMG_ROOTIMGDIR/etc/
       grep 'gridname' $IMG_IMGROOTDIR/etc/gmond.conf || echo "gridname $(domainname)" >> $IMG_IMGROOTDIR/etc/gmond.conf
 
-- shell: |
+- name: Install postscript and run monadd
+  shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
+    monadd gangliamon
+    moncfg gangliamon -r
+    monstart gangliamon -r
+    monls gangliamon monitored | grep monitored # test that was included
 
 - service:
     enabled: yes
