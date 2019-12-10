@@ -110,7 +110,7 @@
   lineinfile:
     path: /etc/httpd/conf.d/zabbix.conf
     regex: 'php_value date.timezone .*'
-    line: 'php_value date.timezone {{ timezone }}' 
+    line: 'php_value date.timezone {{ timezone }}'
   vars:
     timezone: America/Sao_Paulo
 
@@ -123,7 +123,7 @@
 - name: Add Zabbix repository to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p pkglist={{ item.baseurl | replace("$basearch", "x86_64") }}
+    chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item.baseurl | replace("$basearch", "x86_64") }}
   loop: '{{ zabbix_repo_yum }}'
 
 - name: Install Zabbix angent postinstall
@@ -139,16 +139,70 @@
       ServerActive=$(hostname)
       HostnameItem=system.hostname
       LogFile=/var/log/zabbix/zabbix_agentd.log
+      PidFile=/run/zabbix/zabbix_agentd.pid
       EOF
 
 - name: Add postinstall to the image
-  shell: | 
+  shell: |
     souce /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -o postinstall=/opt/versatushpc/xcat/postinstall/zabbix-agent
     genimage {{ genimage_name }}
     packimage {{ genimage_name }}
- 
+
+
+- name: Create SELinux policy
+  copy:
+    dest: zabbix-create-socket.te
+    content: |
+      module zabbix-create-socket 1.0;
+
+      require {
+        type device_t;
+        type zabbix_t;
+        type useradd_t;
+        type zabbix_var_run_t;
+        type httpd_sys_content_t;
+        class sock_file { create unlink write };
+        class unix_stream_socket connectto;
+        class lnk_file read;
+      }
+
+      #============= useradd_t ==============
+
+      #!!!! This avc is allowed in the current policy
+      allow useradd_t device_t:sock_file write;
+
+      #!!!! This avc is allowed in the current policy
+      allow useradd_t httpd_sys_content_t:lnk_file read;
+
+      #============= zabbix_t ==============
+
+      #!!!! The file '/run/zabbix/zabbix_server_alerter.sock' is mislabeled on your system.
+      #!!!! Fix with $ restorecon -R -v /run/zabbix/zabbix_server_alerter.sock
+      #!!!! This avc can be allowed using the boolean 'daemons_enable_cluster_mode'
+      allow zabbix_t self:unix_stream_socket connectto;
+
+      #!!!! This avc is allowed in the current policy
+      allow zabbix_t zabbix_var_run_t:sock_file create;
+      allow zabbix_t zabbix_var_run_t:sock_file unlink;
+
+- name: Install SELinux policy
+  shell: |
+    checkmodule -M -m -o zabbix-create-socket.mod zabbix-create-socket.te
+    semodule_package -o zabbix-create-socket.pp -m zabbix-create-socket.mod
+    semodule -i zabbix-create-socket.pp
+    restorecon -R -v /run/zabbix/zabbix_*
+    rm -rf zabbix-create-socket.*
+    # check that it is installed
+    semodule -l | grep zabbix-create-socket
+
 - name: Restart Apache
   systemd:
     name: httpd
     state: restarted
+
+- name: Start zabbix
+  systemd:
+    name: zabbix-server
+    state: started
+    enabled: yes
