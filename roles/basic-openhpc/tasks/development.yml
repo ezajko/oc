@@ -1,0 +1,114 @@
+---
+# This YAML file tries to implement the chapter 4 of the OpenHPC 1.3.9 manual. 
+# We've split the install in phases with the following order:
+#
+# 1. Development Tools
+# 2. Compilers 
+#     * GNU 7, GNU 8 and LLVM 5
+# 3. MPI Stacks 
+#     * OpenMPI 3 and MPICH
+#     * MVAPICH2 when Infiniband is available
+# 4. Performance Tools
+# 5. Third Party Libraries and Tools
+#
+# Features to be implemented:
+# 6. Complete Intel offering when Parallel Studio XE is available
+#
+# At the end of this file the package with default development environment is
+# installed, defaulting to OpenMPI3 or MVAPICH2 if Infiniband is available.
+
+- name: "Installing OpenHPC Development Tools"
+  yum:
+    state: present
+    name:
+      - ohpc-autotools
+      - EasyBuild-ohpc
+      - hwloc-ohpc
+      - spack-ohpc
+      - valgrind-ohpc
+
+- name: "Installing OpenHPC Compilers"
+  yum:
+    state: present
+    name:
+      - gnu7-compilers-ohpc
+      - gnu8-compilers-ohpc
+      - llvm5-compilers-ohpc
+
+- name: "Installing OpenHPC MPI Stacks"
+  yum:
+    state: present
+    name:
+      - mpich-gnu7-ohpc
+      - mpich-gnu8-ohpc
+  when: queue_system != "slurm"
+  yum:
+    state: present
+    name: openmpi3-default
+      - openmpi3-gnu7-ohpc
+      - openmpi3-gnu8-ohpc    
+  when: queue_system == "slurm"
+  yum:
+    state: present
+    name: openmpi3-slurm
+      - openmpi3-pmix-slurm-gnu7-ohpc
+      - openmpi3-pmix-slurm-gnu8-ohpc
+  when: ib_stack != "none"
+  yum:
+    state: present
+    name: infiniband
+      - mvapich2-gnu7-ohpc
+      - mvapich2-gnu8-ohpc
+
+- name: "Installing OpenHPC Performance Tools"
+  yum:
+    state: present
+    name:
+      - ohpc-gnu8-openmpi3-perf-tools
+      - ohpc-gnu8-mpich-perf-tools
+  when: ib_stack != "none"
+  yum:
+    state: present
+    name: infiniband
+      - mvapich2-gnu7-ohpc
+      - mvapich2-gnu8-ohpc
+
+- name: "Installing OpenHPC Third Party Libraries and Tools"
+  yum:
+    state: present
+    name:
+      - ohpc-gnu8-runtimes
+      - ohpc-gnu8-serial-libs
+      - ohpc-gnu8-openmpi3-parallel-libs
+      - ohpc-gnu8-mpich-parallel-libs
+      - ohpc-gnu8-openmpi3-io-libs
+      - ohpc-gnu8-mpich-io-libs
+      - python-mpi4py-gnu8-openmpi3-ohpc
+      - python-mpi4py-gnu8-mpich-ohpc
+      - python-scipy-gnu8-openmpi3-ohpc
+      - python-scipy-gnu8-mpich-ohpc 
+      - python34-mpi4py-gnu8-openmpi3-ohpc
+      - python34-mpi4py-gnu8-mpich-ohpc
+      - python34-scipy-gnu8-openmpi3-ohpc
+      - python34-scipy-gnu8-mpich-ohpc
+  when: ib_stack != "none"
+  yum:
+    state: present
+    name: infiniband
+      - ohpc-gnu8-mvapich2-parallel-libs
+      - ohpc-gnu8-mvapich2-io-libs
+      - python-mpi4py-gnu8-mvapich2-ohpc
+      - python-scipy-gnu8-mvapich2-ohpc
+      - python34-mpi4py-gnu8-mvapich2-ohpc
+      - python34-scipy-gnu8-mvapich2-ohpc
+
+- name: "Setting the default development environment"
+  yum:
+    state: present
+    name:
+      - lmod-defaults-gnu8-openmpi3-ohpc
+  when: ib_stack != "none"
+  yum:
+    state: present
+    name: infiniband
+      - lmod-defaults-gnu8-mvapich2-ohpc
