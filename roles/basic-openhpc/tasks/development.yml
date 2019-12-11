@@ -47,7 +47,6 @@
   yum:
     state: present
     name:
-      - openmpi3-default
       - openmpi3-gnu7-ohpc
       - openmpi3-gnu8-ohpc
   when: queue_system == "slurm"
@@ -56,7 +55,6 @@
   yum:
     state: present
     name:
-      - openmpi3-slurm
       - openmpi3-pmix-slurm-gnu7-ohpc
       - openmpi3-pmix-slurm-gnu8-ohpc
   when: ib_stack != "none"
@@ -65,7 +63,6 @@
   yum:
     state: present
     name:
-      - infiniband
       - mvapich2-gnu7-ohpc
       - mvapich2-gnu8-ohpc
 
@@ -125,7 +122,7 @@
 - name: "Setting the default development environment"
   yum:
     state: present
-    name: infiniband
+    name:
       - lmod-defaults-gnu8-mvapich2-ohpc
 
 - name: Add libpsm2 to the image
