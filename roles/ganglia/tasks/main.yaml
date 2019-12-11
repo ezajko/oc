@@ -30,6 +30,18 @@
       test -f $IMG_ROOTIMGDIR/etc/gmond.conf || cp -v /etc/gmond.conf $IMG_ROOTIMGDIR/etc/
       grep 'gridname' $IMG_IMGROOTDIR/etc/gmond.conf || echo "gridname $(domainname)" >> $IMG_IMGROOTDIR/etc/gmond.conf
 
+- name: Fix rrd folder owner
+  file:
+    path: /var/lib/ganglia/rrds
+    owner: nobody
+    group: nobody
+
+- name: Fix name on configuration
+  lineinfile:
+    path: /etc/ganglia/gmond.conf
+    regex: 'name = "OpenHPC"'
+    line: 'name = "{{ domain_name }}"'
+
 - name: Install postscript and run monadd
   shell: |
     source /etc/profile.d/xcat.sh
