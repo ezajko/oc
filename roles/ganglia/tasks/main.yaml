@@ -6,29 +6,37 @@
     - enable http and https in firewall
     - restart httpd
 
-# package module doesn't support installroot, shame
+- when: clean is defined
+  block:
+  - name: Stop gmond and gmetad
+    systemd:
+      name: "{{ item }}"
+      state: stopped
+    loop:
+      - gmetad
+      - gmond
+  - name: Remove rrds
+    file:
+      path: /var/lib/ganglia/rrds/
+      state: absent
+  - name: Remove rrds
+    file:
+      path: /var/lib/ganglia/rrds/
+      state: directory
+      owner: 'nobody'
+  - name: Start gmond and gmetad
+    systemd:
+      name: "{{ item }}"
+      state: started
+    loop:
+      - gmetad
+      - gmond
+      #
+# package module doesn"t support installroot, shame
 - name: Add ganglia to image
   lineinfile:
     line: ganglia-gmond-ohpc
-    path: '{{ pkglist }}'
-
-- copy:
-    src: /opt/ohpc/pub/examples/ganglia/gmond.conf
-    dest: /etc/ganglia/gmond.conf
-    remote_src: yes
-
-- replace:
-    path: /etc/ganglia/gmond.conf
-    regexp: '<sms>'
-    after: '^udp_send_channel {'
-    replace: '{{ cluster_name }}'
-
-- copy:
-    dest: /opt/versatushpc/xcat/postinstall/ganglia
-    mode: '0755'
-    content: |
-      test -f $IMG_ROOTIMGDIR/etc/gmond.conf || cp -v /etc/gmond.conf $IMG_ROOTIMGDIR/etc/
-      grep 'gridname' $IMG_IMGROOTDIR/etc/gmond.conf || echo "gridname $(domainname)" >> $IMG_IMGROOTDIR/etc/gmond.conf
+    path: "{{ pkglist }}"
 
 - name: Fix rrd folder owner
   file:
@@ -36,25 +44,25 @@
     owner: nobody
     group: nobody
 
-- name: Fix name on configuration
-  lineinfile:
-    path: /etc/ganglia/gmond.conf
-    regex: 'name = "OpenHPC"'
-    line: 'name = "{{ domain_name }}"'
+- name: Add postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/ganglia
+    mode: '0755'
+    content: |
+      #!/bin/bash -x
+      chroot $IMG_ROOTIMGDIR systemctl enable gmond
+      chroot $IMG_ROOTIMGDIR systemctl enable gmetad
+      cp /opt/ohpc/pub/examples/ganglia/gmond.conf $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
+      sed -e "s/<sms>/$(hostname -f)/" -i $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
+      sed -e "s/OpenHPC/$(domainname)/" -i $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
+      sed -e "s|url = \"unspecified\"|url =\"https://$(hostname -f)/ganglia/\"|" -i $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
+      sed -e "s/owner = \"unspecified\"/owner =\"admin@$(domainname)\"/" -i $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
+      echo data_source $(domainname) $(hostname -f) > $IMG_ROOTIMGDIR/etc/ganglia/gmetad.conf
+      chown nobody: $IMG_ROOTIMGDIR/var/lib/ganglia/rrds
+  notify: xcat genimage
 
-- name: Install postscript and run monadd
+- name: Install postinstall
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
-    monadd gangliamon
-    moncfg gangliamon -r
-    monstart gangliamon -r
-    monls gangliamon monitored | grep monitored # test that was included
-
-- service:
-    enabled: yes
-    state: started
-    name: '{{ item }}'
-  with_items:
-    - gmond
-    - gmetad
+ 
