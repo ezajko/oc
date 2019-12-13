@@ -144,3 +144,8 @@ mysql_expire_logs_days: "10"
 # mysql_replication_master: ''
 # mysql_replication_user: {}
 
+
+# Package exclusions, VXCAT-102
+package_exclusions:
+  - mod_ssl
+  - "*werewolf*"
