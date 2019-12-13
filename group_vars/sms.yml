@@ -97,8 +97,8 @@ test: no
 slurm_mysql_password: "RAr6V&80Vpb4"
 
 # Mysql variables https://github.com/geerlingguy/ansible-role-mysql
-mysql_user_home: /root
-mysql_user_name: root
+mysql_user_home: /var/lib/mysql
+mysql_user_name: mysql
 mysql_root_password: "lRQ66Jtd2qs@"
 mysql_root_password_update: false
 mysql_enabled_on_startup: true
