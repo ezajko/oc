@@ -46,7 +46,7 @@
   when: queue_system != "slurm"
   yum:
     state: present
-    name: openmpi3-default
+    name:
       - openmpi3-gnu7-ohpc
       - openmpi3-gnu8-ohpc
 
@@ -54,7 +54,7 @@
   when: queue_system == "slurm"
   yum:
     state: present
-    name: openmpi3-slurm
+    name:
       - openmpi3-pmix-slurm-gnu7-ohpc
       - openmpi3-pmix-slurm-gnu8-ohpc
 
