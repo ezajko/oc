@@ -42,27 +42,21 @@
       - mpich-gnu7-ohpc
       - mpich-gnu8-ohpc
   when: queue_system != "slurm"
-
-- name: "Installing OpenHPC MPI Stacks"
   yum:
     state: present
-    name:
+    name: openmpi3-default
       - openmpi3-gnu7-ohpc
-      - openmpi3-gnu8-ohpc
+      - openmpi3-gnu8-ohpc    
   when: queue_system == "slurm"
-
-- name: "Installing OpenHPC MPI Stacks"
   yum:
     state: present
-    name:
+    name: openmpi3-slurm
       - openmpi3-pmix-slurm-gnu7-ohpc
       - openmpi3-pmix-slurm-gnu8-ohpc
-  when: ib_stack not in ("mellanox", "none")
-
-- name: "Installing OpenHPC MPI Stacks"
+  when: ib_stack != "none"
   yum:
     state: present
-    name:
+    name: infiniband
       - mvapich2-gnu7-ohpc
       - mvapich2-gnu8-ohpc
 
@@ -72,12 +66,10 @@
     name:
       - ohpc-gnu8-openmpi3-perf-tools
       - ohpc-gnu8-mpich-perf-tools
-  when: ib_stack not in ("mellanox", "none")
-
-- name: "Installing OpenHPC Performance Tools"
+  when: ib_stack != "none"
   yum:
     state: present
-    name:
+    name: infiniband
       - mvapich2-gnu7-ohpc
       - mvapich2-gnu8-ohpc
 
@@ -94,17 +86,15 @@
       - python-mpi4py-gnu8-openmpi3-ohpc
       - python-mpi4py-gnu8-mpich-ohpc
       - python-scipy-gnu8-openmpi3-ohpc
-      - python-scipy-gnu8-mpich-ohpc
+      - python-scipy-gnu8-mpich-ohpc 
       - python34-mpi4py-gnu8-openmpi3-ohpc
       - python34-mpi4py-gnu8-mpich-ohpc
       - python34-scipy-gnu8-openmpi3-ohpc
       - python34-scipy-gnu8-mpich-ohpc
-  when: ib_stack not in ("mellanox", "none")
-
-- name: "Installing OpenHPC Third Party Libraries and Tools"
+  when: ib_stack != "none"
   yum:
     state: present
-    name:
+    name: infiniband
       - ohpc-gnu8-mvapich2-parallel-libs
       - ohpc-gnu8-mvapich2-io-libs
       - python-mpi4py-gnu8-mvapich2-ohpc
@@ -117,21 +107,8 @@
     state: present
     name:
       - lmod-defaults-gnu8-openmpi3-ohpc
-  when: ib_stack not in ("mellanox", "none")
-
-- name: "Setting the default development environment"
+  when: ib_stack != "none"
   yum:
     state: present
-    name:
+    name: infiniband
       - lmod-defaults-gnu8-mvapich2-ohpc
-
-- name: Add libpsm2 to the image
-  lineinfile:
-    path: '{{ pkglist }}'
-    line: libpsm2
-
-- name: Add slurm-libpmi-ohpc to the image
-  when: queue_system == "slurm"
-  lineinfile:
-    path: '{{ pkglist }}'
-    line: slurm-libpmi-ohpc
