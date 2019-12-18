@@ -35,45 +35,52 @@
       - gnu8-compilers-ohpc
       - llvm5-compilers-ohpc
 
-- name: "Installing OpenHPC MPI Stacks"
+- name: "Installing OpenHPC MPI Stacks (MPICH)"
   yum:
     state: present
     name:
       - mpich-gnu7-ohpc
       - mpich-gnu8-ohpc
+
+- name: "Installing OpenHPC MPI Stacks (OpenMPI)"
   when: queue_system != "slurm"
   yum:
     state: present
     name: openmpi3-default
       - openmpi3-gnu7-ohpc
-      - openmpi3-gnu8-ohpc    
+      - openmpi3-gnu8-ohpc
+
+- name: "Installing OpenHPC MPI Stacks (OpenMPI with SLURM PMIx Support)"
   when: queue_system == "slurm"
   yum:
     state: present
     name: openmpi3-slurm
       - openmpi3-pmix-slurm-gnu7-ohpc
       - openmpi3-pmix-slurm-gnu8-ohpc
+
+- name: "Installing OpenHPC MPI Stacks (MVAPICH)"
   when: ib_stack != "none"
   yum:
     state: present
-    name: infiniband
+    name:
       - mvapich2-gnu7-ohpc
       - mvapich2-gnu8-ohpc
 
-- name: "Installing OpenHPC Performance Tools"
+- name: "Installing OpenHPC Performance Tools with MPICH and OpenMPI"
   yum:
     state: present
     name:
       - ohpc-gnu8-openmpi3-perf-tools
       - ohpc-gnu8-mpich-perf-tools
+
+- name: "Installing OpenHPC Performance Tools with MVAPICH"
   when: ib_stack != "none"
   yum:
     state: present
-    name: infiniband
-      - mvapich2-gnu7-ohpc
-      - mvapich2-gnu8-ohpc
+    name:
+      - ohpc-gnu8-mvapich2-perf-tools
 
-- name: "Installing OpenHPC Third Party Libraries and Tools"
+- name: "Installing OpenHPC Third Party Libraries and Tools with MPICH and OpenMPI"
   yum:
     state: present
     name:
@@ -86,15 +93,17 @@
       - python-mpi4py-gnu8-openmpi3-ohpc
       - python-mpi4py-gnu8-mpich-ohpc
       - python-scipy-gnu8-openmpi3-ohpc
-      - python-scipy-gnu8-mpich-ohpc 
+      - python-scipy-gnu8-mpich-ohpc
       - python34-mpi4py-gnu8-openmpi3-ohpc
       - python34-mpi4py-gnu8-mpich-ohpc
       - python34-scipy-gnu8-openmpi3-ohpc
       - python34-scipy-gnu8-mpich-ohpc
+
+- name: "Installing OpenHPC Third Party Libraries and Tools with MVAPICH"
   when: ib_stack != "none"
   yum:
     state: present
-    name: infiniband
+    name:
       - ohpc-gnu8-mvapich2-parallel-libs
       - ohpc-gnu8-mvapich2-io-libs
       - python-mpi4py-gnu8-mvapich2-ohpc
@@ -102,13 +111,16 @@
       - python34-mpi4py-gnu8-mvapich2-ohpc
       - python34-scipy-gnu8-mvapich2-ohpc
 
-- name: "Setting the default development environment"
+- name: "Setting the default development environment to GNU with OpenMPI"
+  when: ib_stack == "none"
   yum:
     state: present
     name:
       - lmod-defaults-gnu8-openmpi3-ohpc
+
+- name: "Setting the default development environment to GNU with MVAPICH"
   when: ib_stack != "none"
   yum:
     state: present
-    name: infiniband
+    name:
       - lmod-defaults-gnu8-mvapich2-ohpc
