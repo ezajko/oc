@@ -42,6 +42,10 @@ git submodule update
   - A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
     file contains all your answers to all previous questions, you will use this in the next steps.
 
+* Run `ansible-playbook all.yaml -e @answer-file.yaml` to run all phases in sequence
+
+    Or run each of these steps in order:
+
 * Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
 * Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`
 * To configure infiniband `ansible-playbook infiniband.yaml -e @answers-<date>.yaml`
