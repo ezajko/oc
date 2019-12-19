@@ -250,3 +250,8 @@
   when: ib_stack != "none"
   default_template: ib_network | ipaddr('next_usable')
   private: no
+
+- name: timezone
+  prompt: Select timezone
+  default: "America/Sao_Paulo"
+  private: no
