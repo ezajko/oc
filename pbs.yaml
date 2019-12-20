@@ -6,5 +6,6 @@
     - name: Get package facts
       package_facts:
         manager: auto
-  roles:
-    - pbs
+  tasks:
+    - include_role: name=pbs
+      when: queue_system == "pbs"
