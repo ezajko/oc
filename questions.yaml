@@ -147,6 +147,14 @@
   help: |
     PBS default.place option
 
+- name: slurm_partition_name
+  prompt: Slurm default partition name
+  default: batch
+  private: no
+  when: queue_system == "slurm"
+  help: |
+    The Slurm partition name
+
 - name: postfix_install
   default: 'yes'
   choices: ['yes', 'no']
