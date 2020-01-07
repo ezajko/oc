@@ -6,3 +6,4 @@
     chdef -t site FQDNfirst=1
     chdef -t site externaldns=1
     chdef -t site cleanupxcatpost=1
+    chdef -t site timezone={{ timezone }}
