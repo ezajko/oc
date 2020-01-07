@@ -21,4 +21,4 @@
   lineinfile:
     dest: /etc/slurm/slurm.conf
     state: present
-    line: 'PartitionName=default Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
+    line: 'PartitionName={{ slurm_partition_name |  default("batch") }} Nodes=ALL Default=YES MaxTime=24:00:00 State=UP'
