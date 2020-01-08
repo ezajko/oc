@@ -22,4 +22,5 @@
 - import_tasks: repos/xcat.yml
 - import_tasks: repos/cuda.yml
 - import_tasks: repos/openzfs.yml
+- import_tasks: repos/dell.yaml
 - import_tasks: timezone.yaml
