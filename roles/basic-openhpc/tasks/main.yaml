@@ -15,6 +15,7 @@
   systemd:
     name: chronyd
     state: started
+    enabled: yes
 
 - name: Export the required filesystems over NFS
   copy:
