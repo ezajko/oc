@@ -15,7 +15,7 @@
 
 - name: Clone Spack
   shell: |
-    GIT_SSL_NO_VERIFY=1 git clone https://bitbucket.versatushpc.com.br/scm/pkg/spack.git /opt/spack
+    git clone https://bitbucket.versatushpc.com.br/scm/pkg/spack.git /opt/spack
   register: git
   failed_when: git.rc != 0 and git.stderr is not search("already exists")
 
