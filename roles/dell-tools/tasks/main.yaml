@@ -1,0 +1,8 @@
+- name: Install RACADM via yum
+  yum:
+    name: srvadmin-idracadm7.x86_64
+    state: present
+
+- name: Check if everything is working, call the help module of RACADM
+  shell: /opt/dell/srvadmin/sbin/racadm
+  changed_when: false
