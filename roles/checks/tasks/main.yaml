@@ -1,0 +1,12 @@
+- name: Update playbook from git
+  shell: |
+    git pull --rebase
+  delegate_to: localhost
+  register: git
+  failed_when: git.rc != 0 and git.stderr is not search('You have unstaged changes')
+
+- name: Download submodules
+  shell: |
+    git submodule init
+    git submodule update
+  delegate_to: localhost
