@@ -1,0 +1,13 @@
+- name: check for dependencies
+  stat:
+    path: "roles/{{ item }}"
+  register: stat
+  loop:
+    - dj-wasabi.zabbix-server
+    - dj-wasabi.zabbix-web
+    - freeipa
+    - geerlingguy.apache
+    - geerlingguy.mysql
+    - geerlingguy.postgresql
+  failed_when: not stat.stat.exists
+  delegate_to: localhost
