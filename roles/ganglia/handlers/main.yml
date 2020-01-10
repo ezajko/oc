@@ -13,4 +13,17 @@
   service:
     name: httpd
     state: restarted
-  
+
+- name: xcat genimage
+  shell: |
+    source /etc/profile.d/xcat.sh
+    genimage {{ genimage_name }}
+    packimage {{ genimage_name }}
+
+- name: restart gmond and gmetad
+  systemd:
+    state: restarted
+    name: '{{ item }}'
+  loop:
+    - gmond
+    - gmetad

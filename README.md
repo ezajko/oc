@@ -15,8 +15,8 @@ has ansible 2.4, which is incompatible with this playbook!_
 
 
 ```
-git clone --recursive https://bitbucket.versatushpc.com.br/scm/sv/deploy-2.0.git
-cd deploy-2.0
+git clone --recursive https://bitbucket.versatushpc.com.br/scm/vxcat/deployment.git
+cd deployment
 git submodule init
 git submodule update
 ```
@@ -41,6 +41,10 @@ git submodule update
   - Answer the questions to configure the environment.
   - A new file named answers-<date>.yaml will be created, where `<date>` is the date for today with the hour. This
     file contains all your answers to all previous questions, you will use this in the next steps.
+
+* Run `ansible-playbook all.yaml -e @answer-file.yaml` to run all phases in sequence
+
+    Or run each of these steps in order:
 
 * Run `ansible-playbook deploy.yaml -e @answer-<date>.yaml` to install the base system
 * Add the image `ansible-playbook add-image.yaml -e @answers-<date>.yaml`

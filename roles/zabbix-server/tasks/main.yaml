@@ -1,6 +1,3 @@
-- name: Create Certificate
-  import_role: name=certificate
-
 - name: Let's Encrypt chain
   copy:
     dest: /etc/pki/tls/certs/lets-encrypt-ca.cer
@@ -109,16 +106,103 @@
     zabbix_url: '{{ ansible_host }}'
     zabbix_url_aliases: ['/zabbix']
 
-- name: Add /zabbix to zabbix url
+- name: Add locale
   lineinfile:
     path: /etc/httpd/conf.d/zabbix.conf
-    line: 'Alias /zabbix /usr/share/zabbix'
-    insertbefore: '<VirtualHost *:80>'
-  notify: Restart HTTPD
+    regex: 'php_value date.timezone .*'
+    line: 'php_value date.timezone {{ timezone }}'
+  vars:
+    timezone: America/Sao_Paulo
 
-- name: Remove double Listen from Apache
+- name: Install Zabbix agent in the image
   lineinfile:
-    path: /etc/httpd/conf.d/ssl.conf
-    line: Listen 443 https
-    state: absent
+    path: '{{ pkglist }}'
+    line: 'zabbix-agent'
 
+
+- name: Add Zabbix repository to the image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item.baseurl | replace("$basearch", "x86_64") }}
+  loop: '{{ zabbix_repo_yum }}'
+
+- name: Install Zabbix angent postinstall
+  copy:
+    dest: /opt/versatushpc/xcat/postinstall/zabbix-agent
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      chroot ${IMG_ROOTIMGDIR} systemctl enable zabbix-agent
+
+      cat << EOF > ${IMG_ROOTIMGDIR}/etc/zabbix/zabbix_agentd.conf
+      Server=$(hostname)
+      ServerActive=$(hostname)
+      HostnameItem=system.hostname
+      LogFile=/var/log/zabbix/zabbix_agentd.log
+      PidFile=/run/zabbix/zabbix_agentd.pid
+      EOF
+
+- name: Add postinstall to the image
+  shell: |
+    souce /etc/profile.d/xcat.sh
+    chdef -t osimage -o {{ genimage_name }} -o postinstall=/opt/versatushpc/xcat/postinstall/zabbix-agent
+    genimage {{ genimage_name }}
+    packimage {{ genimage_name }}
+
+
+- name: Create SELinux policy
+  copy:
+    dest: zabbix-create-socket.te
+    content: |
+      module zabbix-create-socket 1.0;
+
+      require {
+        type device_t;
+        type zabbix_t;
+        type useradd_t;
+        type zabbix_var_run_t;
+        type httpd_sys_content_t;
+        class sock_file { create unlink write };
+        class unix_stream_socket connectto;
+        class lnk_file read;
+      }
+
+      #============= useradd_t ==============
+
+      #!!!! This avc is allowed in the current policy
+      allow useradd_t device_t:sock_file write;
+
+      #!!!! This avc is allowed in the current policy
+      allow useradd_t httpd_sys_content_t:lnk_file read;
+
+      #============= zabbix_t ==============
+
+      #!!!! The file '/run/zabbix/zabbix_server_alerter.sock' is mislabeled on your system.
+      #!!!! Fix with $ restorecon -R -v /run/zabbix/zabbix_server_alerter.sock
+      #!!!! This avc can be allowed using the boolean 'daemons_enable_cluster_mode'
+      allow zabbix_t self:unix_stream_socket connectto;
+
+      #!!!! This avc is allowed in the current policy
+      allow zabbix_t zabbix_var_run_t:sock_file create;
+      allow zabbix_t zabbix_var_run_t:sock_file unlink;
+
+- name: Install SELinux policy
+  shell: |
+    checkmodule -M -m -o zabbix-create-socket.mod zabbix-create-socket.te
+    semodule_package -o zabbix-create-socket.pp -m zabbix-create-socket.mod
+    semodule -i zabbix-create-socket.pp
+    restorecon -R -v /run/zabbix/zabbix_*
+    rm -rf zabbix-create-socket.*
+    # check that it is installed
+    semodule -l | grep zabbix-create-socket
+
+- name: Restart Apache
+  systemd:
+    name: httpd
+    state: restarted
+
+- name: Start zabbix
+  systemd:
+    name: zabbix-server
+    state: started
+    enabled: yes

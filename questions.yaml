@@ -147,6 +147,14 @@
   help: |
     PBS default.place option
 
+- name: slurm_partition_name
+  prompt: Slurm default partition name
+  default: batch
+  private: no
+  when: queue_system == "slurm"
+  help: |
+    The Slurm partition name
+
 - name: postfix_install
   default: 'yes'
   choices: ['yes', 'no']
@@ -249,4 +257,9 @@
   prompt: Infiniband network first node IP address
   when: ib_stack != "none"
   default_template: ib_network | ipaddr('next_usable')
+  private: no
+
+- name: timezone
+  prompt: Select timezone
+  default: "America/Sao_Paulo"
   private: no

@@ -1,3 +1,6 @@
+- import_role: name=geerlingguy.mysql
+  become: yes
+
 - name: Check if OpenHPC and xCAT are installed
   assert:
     that:
@@ -6,12 +9,14 @@
 
 - name: Install SLURM
   yum:
-    name: ohpc-slurm-server
+    name:
+      - ohpc-slurm-server
+      - slurm-slurmdbd-ohpc
 
 - name: Configure ClusterName settings in slurm.conf
   lineinfile:
     regex: ClusterName=\S+
-    line: ClusterName={{ fqdn.split('.')[1] }}
+    line: ClusterName={{ fqdn.split(".")[1] }}
     state: present
     path: /etc/slurm/slurm.conf
 
@@ -41,13 +46,82 @@
     state: present
     path: /etc/slurm/slurm.conf
 
+- name: Create slurmdbd.conf
+  copy:
+    remote_src: true
+    src: /etc/slurm/slurmdbd.conf.example
+    dest: /etc/slurm/slurmdbd.conf
+    mode: '0600'
+
+- name: Create log folder
+  file:
+    state: directory
+    path: /var/log/slurm
+    owner: slurm
+
+- name: Configure password
+  lineinfile:
+    path: /etc/slurm/slurmdbd.conf
+    state: present
+    line: "StoragePass={{ slurm_mysql_password }}"
+    regex: "^StoragePass=.*"
+
+- name: Configure retention
+  blockinfile:
+    path: /etc/slurm/slurmdbd.conf
+    state: present
+    block: |
+      PurgeEventAfter=12months
+      PurgeJobAfter=12months
+      PurgeResvAfter=2months
+      PurgeStepAfter=2months
+      PurgeSuspendAfter=1month
+      PurgeTXNAfter=12months
+      PurgeUsageAfter=12months
+
+- name: Configure MySQL limits
+  blockinfile:
+    path: /etc/my.cnf.d/innodb.cnf
+    state: present
+    create: yes
+    block: |
+      [mysqld]
+      innodb_buffer_pool_size=1024M
+      innodb_log_file_size=64M
+      innodb_lock_wait_timeout=900
+  register: innodb_conf
+
+- when: innodb_conf.changed
+  block:
+  - name: Stop MySQL
+    systemd:
+      name: mariadb
+      state: stopped
+
+  - name: Remove old logs
+    shell: rm -rf /var/lib/mysql/ib_logfile*
+
+  - name: Start MySQL
+    systemd:
+      name: mariadb
+      state: started
+
+- name: Enable slurmdbd service
+  systemd:
+    name: slurmdbd
+    state: started
+    enabled: yes
+
+- name: Testing sacct
+  shell: sacct
+
 - name: Create the list of required files to be synced to compute nodes with xCAT
   block:
     - name: Create synclist
       lineinfile:
         create: yes
-        path: {{ synclist }}
-        line: '{{ item }}'
+        path: "{{ synclist }}"
+        line: "{{ item }}"
       loop:
         - /etc/slurm/slurm.conf -> /etc/slurm/slurm.conf
         - /etc/munge/munge.key -> /etc/munge/munge.key
@@ -61,7 +135,7 @@
   systemd:
     state: started
     enabled: yes
-    name: '{{ item }}'
+    name: "{{ item }}"
   with_items:
     - munge
     - slurmctld
@@ -69,18 +143,18 @@
 - name: Add packages to the image
   lineinfile:
     line: ohpc-slurm-client
-    path: '{{ pkglist }}'
+    path: "{{ pkglist }}"
     state: present
 
 - name:  Create postinstall script
   copy:
     dest: /opt/versatushpc/xcat/postinstall/slurm
-    mode: '0755'
+    mode: "0755"
     content: |
       if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
           cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
-          sed -e '/\[Unit\]/a\StartLimitBurst=5\nStartLimitIntervalSec=3' \
-              -e '/\[Service\]/a\Restart=always\nRestartSec=5'               \
+          sed -e "/\[Unit\]/a\StartLimitBurst=5\nStartLimitIntervalSec=3" \
+              -e "/\[Service\]/a\Restart=always\nRestartSec=5"               \
               -i $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service
           chroot $IMG_ROOTIMGDIR systemctl enable munge
           chroot $IMG_ROOTIMGDIR systemctl enable slurmd

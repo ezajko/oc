@@ -62,12 +62,90 @@ tls_csr: '/tmp/{{ tls_csr_file }}'
 agent_server: 'zabbix.versatushpc.com.br'
 agent_serveractive: '{{ agent_server }}'
 zabbix_version: 4.0
-zabbix_url: '{{ ansible_hostname }}'
-zabbix_apache_tls: yes
-zabbix_apache_redirect: yes
-zabbix_apache_tls_crt: '{{ tls_cert }}'
-zabbix_apache_tls_key: '{{ tls_key }}'
+zabbix_repo_yum:
+  - name: zabbix
+    description: Zabbix Official Repository - $basearch
+    baseurl: http://repo.zabbix.com/zabbix/{{ zabbix_version }}/rhel/{{ ansible_distribution_major_version }}/$basearch/
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
+    state: present
+  - name: zabbix-non-supported
+    description: Zabbix Official Repository non-supported - $basearch
+    baseurl: http://repo.zabbix.com/non-supported/rhel/{{ ansible_distribution_major_version }}/$basearch/
+    gpgcheck: 0
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-ZABBIX
+    state: present
+zabbix_web_package_state: present
+zabbix_url: '{{ fqdn }}'
+zabbix_vhost: false
+zabbix_php_install: true
+zabbix_server_name: '{{ fqdn }}'
+zabbix_server_database_long: "{{ 'mysql' if queue_system == 'slurm' else 'postgresql' }}"
+zabbix_server_hostname: '{{ fqdn }}'
+zabbix_server_dbhost: 'localhost'
+zabbix_server_dbuser: 'zabbix'
+zabbix_server_dbpassword: 'S9h7$fZejwfC'
+zabbix_server_dbport: '{{ 5432 if zabbix_server_database_long == "postgresql" else 3306 }}'
+zabbix_websrv: ''
+zabbix_timezone: 'America/Sao_Paulo'
+
 
 # Test avoid early failures to make running multiple times better to test
 test: no
 
+# Slurm variables
+slurm_mysql_password: "RAr6V&80Vpb4"
+
+# Mysql variables https://github.com/geerlingguy/ansible-role-mysql
+mysql_user_home: /var/lib/mysql
+mysql_user_name: mysql
+mysql_root_password: "lRQ66Jtd2qs@"
+mysql_root_password_update: false
+mysql_enabled_on_startup: true
+overwrite_global_mycnf: true
+# mysql_config_include_files: []
+# mysql_config_file: *default value depends on OS*
+# mysql_config_include_dir: *default value depends on OS*
+mysql_databases:
+  - name: slurm_acct_db
+# - name: example_db
+#   encoding: latin1
+#   collation: latin1_general_ci
+mysql_users:
+  - name: slurm
+    host: "%"
+    password: "{{ slurm_mysql_password }}"
+    priv: "slurm_acct_db.*:ALL"
+# mysql_packages:
+#  - mariadb-client
+#  - mariadb-server
+#  - python-mysqldb
+# mysql_enablerepo: ""
+mysql_port: "3306"
+mysql_bind_address: '0.0.0.0'
+mysql_datadir: /var/lib/mysql
+# mysql_socket: *default value depends on OS*
+# mysql_pid_file: *default value depends on OS*
+# mysql_log_file_group: mysql *adm on Debian*
+# mysql_log: ""
+# mysql_log_error: *default value depends on OS*
+# mysql_syslog_tag: *default value depends on OS*
+mysql_slow_query_log_enabled: false
+# mysql_slow_query_log_file: *default value depends on OS*
+mysql_slow_query_time: 2
+mysql_key_buffer_size: "256M"
+mysql_max_allowed_packet: "64M"
+mysql_table_open_cache: "256"
+mysql_server_id: "1"
+mysql_max_binlog_size: "100M"
+mysql_binlog_format: "ROW"
+mysql_expire_logs_days: "10"
+# mysql_replication_role: ''
+# mysql_replication_master: ''
+# mysql_replication_user: {}
+
+
+# Package exclusions, VXCAT-102
+package_exclusions:
+  - mod_ssl
+  - "*werewolf*"

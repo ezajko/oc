@@ -1,0 +1,8 @@
+- name: Add exclusion
+  lineinfile:
+    regexp: '^exclude=(?P<pkgs>.*)$'
+    line: 'exclude={{ package_exclusions | default("") | join(" ") }} \g<pkgs>'
+    backrefs: yes
+    state: present
+    path: /etc/yum.conf
+
