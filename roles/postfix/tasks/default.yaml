@@ -11,7 +11,7 @@
   notify: restart postfix
 
 - name: 'Configure SALS support'
-  import_tasks: sasl.yml
+  import_tasks: sasl.yaml
   when: postfix_profile == "sasl"
 
 - name: 'Create master.cf'
