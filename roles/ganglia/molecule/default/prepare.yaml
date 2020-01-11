@@ -28,7 +28,7 @@
         manager: auto
   tasks:
     - include_vars:
-        ../../../../group_vars/sms.yml
+        ../../../../group_vars/sms.yaml
 
     - include_role:
         name: ../../../packages/

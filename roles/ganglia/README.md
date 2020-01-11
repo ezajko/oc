@@ -8,7 +8,7 @@ Requirements
 - OHPC repository need to be enabled on the
   target. https://openhpc.community/
 - Depends on [cluster-dimage role](../../roles/cluster-dimage/). View
-  [prepare.yml](molecule/default/prepare.yml) for an example
+  [prepare.yaml](molecule/default/prepare.yaml) for an example
 
 Role Variables
 --------------

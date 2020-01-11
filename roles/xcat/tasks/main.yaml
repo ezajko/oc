@@ -1,0 +1,7 @@
+- import_tasks: completions.yaml
+- import_tasks: install.yaml
+- import_tasks: site.yaml
+- import_tasks: network.yaml
+- import_tasks: selinux.yaml
+- import_tasks: sanitize-ssh.yaml
+- import_tasks: postscripts.yaml

@@ -44,7 +44,7 @@
       gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
       enabled=0
 
-- import_tasks: install-yum-config-manager.yml
+- import_tasks: install-yum-config-manager.yaml
 
 - name: Enable the Vault versions of Base, Updates and Extras repositories, keeping everything else disabled.
   shell: |

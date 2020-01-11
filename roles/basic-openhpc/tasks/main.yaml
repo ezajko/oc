@@ -27,7 +27,7 @@
   shell: |
     exportfs -a
 
-- import_tasks: automount.yml
-- import_tasks: image.yml
-- import_tasks: development.yml
+- import_tasks: automount.yaml
+- import_tasks: image.yaml
+- import_tasks: development.yaml
 

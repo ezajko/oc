@@ -2,9 +2,9 @@
 # tasks file for roles/centos-vault
 
 - name: Include tasks
-  include_tasks: default.yml
+  include_tasks: default.yaml
   when: install_on_nodes is not defined or not install_on_nodes
 
 - name: Include node installation
-  include_tasks: install-on-computing-nodes.yml
+  include_tasks: install-on-computing-nodes.yaml
   when: install_on_nodes is defined and install_on_nodes

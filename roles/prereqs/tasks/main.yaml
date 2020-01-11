@@ -15,12 +15,12 @@
 #   include_role:
 #     name: centos-vault
 #   when: ansible_facts.distribution == "CentOS"
-- import_tasks: yum-update.yml
-- import_tasks: repos/epel.yml
-- import_tasks: repos/mellanox.yml
-- import_tasks: repos/openhpc.yml
-- import_tasks: repos/xcat.yml
-- import_tasks: repos/cuda.yml
-- import_tasks: repos/openzfs.yml
+- import_tasks: yum-update.yaml
+- import_tasks: repos/epel.yaml
+- import_tasks: repos/mellanox.yaml
+- import_tasks: repos/openhpc.yaml
+- import_tasks: repos/xcat.yaml
+- import_tasks: repos/cuda.yaml
+- import_tasks: repos/openzfs.yaml
 - import_tasks: repos/dell.yaml
 - import_tasks: timezone.yaml
