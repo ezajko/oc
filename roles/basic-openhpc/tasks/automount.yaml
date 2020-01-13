@@ -5,7 +5,7 @@
     ipa automountmap-add compute auto.home
     ipa automountmap-add compute auto.ohpc
     ipa automountkey-add compute auto.home --key="*" --info="-fstype=nfs {{ fqdn }}:/home/&"
-    ipa automountkey-add compute auto.ohpc --key="*" --info="-fstype=nfs {{ fqdn }}:/opt/ohpc/pub"
+    ipa automountkey-add compute auto.ohpc --key="*" --info="-fstype=nfs {{ fqdn }}:/opt/ohpc/pub/&"
     ipa automountkey-add compute auto.master --key=/home --info=auto.home
     ipa automountkey-add compute auto.master --key=/opt/ohpc/pub --info=auto.ohpc
     ipa automountlocation-tofiles compute
