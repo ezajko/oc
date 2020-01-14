@@ -8,3 +8,4 @@ answers*
 **/#*#
 .mypy_cache/*
 draft.sh
+**/*.pyc
