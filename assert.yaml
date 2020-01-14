@@ -43,11 +43,23 @@
       nmcli c show | grep 'Wired connection'
     changed_when: false
 
-  - name: Connect to node001
+  - name: Check that first node is booted
+    shell: /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
+    changed_when: false
+    register: lsdef
+    failed_when: lsdef.rc != 0 and lsdef.stdout != "booted"
+
+  - name: Connect to first node
     shell: |
-      ssh node001 -- echo okay
+      ssh {{ 0 | node_name }} -- echo okay
     changed_when: false
 
   - name: Check that chrony is installed and running on node
     shell: |
-      ssh node001 -- "rpm -q chrony; systemctl is-active chronyd"
+      ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
+    changed_when: false
+
+  - name: Check that automount is working
+    shell: |
+      ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
+    changed_when: false

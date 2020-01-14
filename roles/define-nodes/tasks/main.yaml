@@ -222,7 +222,10 @@
 - name: Add ipa-join to image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postscripts=versatushpc/ipa-join
+    # put automount after ipa-join. VXCAT-139
+    lsdef -t osimage -o centos7.7-x86_64-netboot-compute -z | \
+      sed -e 's|versatushpc/freeipa-automount-compute|versatushpc/ipa-join,versatushpc/freeipa-automount-compute|' | \
+      chdef -z
 
 - name: Create host group
   shell: |
