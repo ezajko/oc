@@ -43,17 +43,18 @@
     mode: '0755'
 
 - name: Create authorized_keys
-  copy:
-    dest: /root/.ssh/authorized_keys
+  lineinfile:
+    path: /root/.ssh/authorized_keys
     mode: '0700'
-    content: |
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dM32vl7oMAI3H4aAgtSINRYc69+v9y4UobTiRX7b+ angelo
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILvv3VhslrVwZEpnK/sjJMs5AxH7EuaJYBTliKgXrVCL denis
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHEe84J84HpTAXZe7WNsxWtmacT1zBov+u6Q94wbOdiq eiji
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIlAXfqgsQSNGqbyIFDNucUTU9PfZXvcjPE3iph9eWjL fabricio
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBD1qtOpSgWSZAgqzBLhk0Rv6uCyLOJG2XY9o9SX0Y1H ferrao
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtewyz5PydEwYO8saMbywUEeuORzUkXq3owlwVuc+VF hilst
-      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBbdZaCeETGnREjn5O8hB90QTFX5d6DyEG5u0BhboBEd nelson
+    line: "{{ item }}"
+  loop:
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dM32vl7oMAI3H4aAgtSINRYc69+v9y4UobTiRX7b+ angelo
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILvv3VhslrVwZEpnK/sjJMs5AxH7EuaJYBTliKgXrVCL denis
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHEe84J84HpTAXZe7WNsxWtmacT1zBov+u6Q94wbOdiq eiji
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIlAXfqgsQSNGqbyIFDNucUTU9PfZXvcjPE3iph9eWjL fabricio
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBD1qtOpSgWSZAgqzBLhk0Rv6uCyLOJG2XY9o9SX0Y1H ferrao
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtewyz5PydEwYO8saMbywUEeuORzUkXq3owlwVuc+VF hilst
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBbdZaCeETGnREjn5O8hB90QTFX5d6DyEG5u0BhboBEd nelson
 
 - name: Restore SELinux contexts on /root/.ssh
   shell: restorecon -R /root/.ssh

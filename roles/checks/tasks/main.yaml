@@ -3,10 +3,17 @@
     git pull --rebase
   delegate_to: localhost
   register: git
-  failed_when: git.rc != 0 and git.stderr is not search('You have unstaged changes')
+  # failed_when: git.rc != 0 and git.stderr is not search('You have unstaged changes')
+  ignore_errors: yes
 
 - name: Download submodules
   shell: |
     git submodule init
     git submodule update
   delegate_to: localhost
+  ignore_errors: yes
+
+- name: Install dependencies
+  yum:
+    name:
+      - python-netaddr

@@ -223,9 +223,10 @@
   shell: |
     source /etc/profile.d/xcat.sh
     # put automount after ipa-join. VXCAT-139
-    lsdef -t osimage -o centos7.7-x86_64-netboot-compute -z | \
-      sed -e 's|versatushpc/freeipa-automount-compute|versatushpc/ipa-join,versatushpc/freeipa-automount-compute|' | \
-      chdef -z
+    lsdef -t osimage -o centos7.7-x86_64-netboot-compute -z > image
+    sed -e 's|versatushpc/freeipa-automount-compute|versatushpc/ipa-join,versatushpc/freeipa-automount-compute|' -i image 
+    chdef -z < image
+    rm image
 
 - name: Create host group
   shell: |
