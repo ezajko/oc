@@ -2,7 +2,8 @@
 *.swp
 deploy.log
 **/__pycache__/*
-answers*
+answers*.yaml
+!test/answer*.yaml
 **/*~
 **/.#*
 **/#*#
