@@ -1,0 +1,28 @@
+---
+- hosts: ovirtserver
+  gather_facts: no
+  tasks:
+    - assert:
+        that:
+          - lookup("env", "OVIRT_PASSWORD")
+
+    - ovirt_vm:
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        name: ansible-test-node
+        state: stopped
+      delegate_to: localhost
+
+    - ovirt_vm:
+        auth:
+          insecure: yes
+          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          username: admin@internal
+          password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
+        name: ansible-test-node
+        state: running
+      delegate_to: localhost
+
