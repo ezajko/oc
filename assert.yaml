@@ -53,6 +53,11 @@
     shell: |
       ssh {{ 0 | node_name }} -- echo okay
     changed_when: false
+    register: ssh
+    until: ssh.rc = 0
+    delay: 5
+    retries: 10
+
 
   - name: Check that chrony is installed and running on node
     shell: |
