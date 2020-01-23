@@ -46,6 +46,7 @@
   lineinfile:
     path: /root/.ssh/authorized_keys
     mode: '0700'
+    create: yes
     line: "{{ item }}"
   loop:
     - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9dM32vl7oMAI3H4aAgtSINRYc69+v9y4UobTiRX7b+ angelo
