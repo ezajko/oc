@@ -1,6 +1,10 @@
 - import_role: name=geerlingguy.mysql
   become: yes
 
+- name: Gather package facts
+  package_facts:
+    manager: auto
+
 - name: Check if OpenHPC and xCAT are installed
   assert:
     that:

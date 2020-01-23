@@ -1,6 +1,9 @@
 ---
 - hosts: ovirtserver
   gather_facts: no
+  vars:
+    vm: ansible-test-node
+    ovirt_host: ovirt2
   tasks:
     - assert:
         that:
@@ -12,8 +15,9 @@
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-        name: ansible-test-node
+        name: "{{ vm }}"
         state: stopped
+        force: yes
       delegate_to: localhost
 
     - ovirt_vm:
@@ -22,7 +26,9 @@
           url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
-        name: ansible-test-node
+        name: "{{ vm }}"
         state: running
+        host: "{{ ovirt_host }}"
+        force_migrate: yes
       delegate_to: localhost
 
