@@ -1,0 +1,3 @@
+queue_system: pbs
+pbs_default_place: shared
+

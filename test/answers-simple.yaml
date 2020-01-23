@@ -19,8 +19,6 @@ nodes_padding: '3'
 nodes_prefix: node
 nodes_separator: ''
 postfix_install: false
-queue_system: "slurm"
-slurm_partition_name: batch
 service_network_enabled: false
 sms_eth_external: eth0
 sms_eth_internal: enp2s0
