@@ -1,0 +1,2 @@
+queue_system: slurm
+slurm_partition_name: batch
