@@ -2,7 +2,7 @@
 - hosts: ovirtserver
   gather_facts: no
   vars:
-    vm: "{{ vm }}"
+    vm: ansible-test
     ovirt_host: ovirt2
   tasks:
     - assert:
