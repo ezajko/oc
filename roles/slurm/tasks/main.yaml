@@ -2,7 +2,8 @@
   become: yes
 
 - name: Gather package facts
-  package_fats: manager=auto
+  package_facts:
+    manager: auto
 
 - name: Check if OpenHPC and xCAT are installed
   assert:
