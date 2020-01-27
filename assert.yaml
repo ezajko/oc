@@ -43,6 +43,11 @@
       nmcli c show | grep 'Wired connection'
     changed_when: false
 
+  - name: Check that headnode hostname is present in /etc/hosts
+    changed_when: false
+    shell: |
+      grep -E '^{{ sms_ip }}\s+{{ fqdn }}\s+{{ cluster_name }}' /etc/hosts
+
   - name: Check that first node is booted
     shell: /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
     changed_when: false
