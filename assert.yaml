@@ -101,6 +101,11 @@
       md5sum /opt/versatushpc/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
     loop: "{{ ssh_key_types }}"
 
+  - name: Check that headnode hostname is present in /etc/hosts
+    changed_when: false
+    shell: |
+      grep -E '^{{ sms_ip }}\s+{{ fqdn }}\s+{{ cluster_name }}' /etc/hosts
+
   - name: Check that first node is booted
     shell: |
       set -o pipefail
