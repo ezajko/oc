@@ -263,3 +263,9 @@
   prompt: Select timezone
   default: "America/Sao_Paulo"
   private: no
+
+- name: gui_enabled
+  default: "no"
+  private: no
+  choices: ["yes", "no"]
+  prompt: Do you want to install the OpenCATTUS Web interface (technical preview)

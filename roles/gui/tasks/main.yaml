@@ -1,0 +1,8 @@
+- name: Enable repositories
+  shell: yum-config-manager --enable OpenCATTUS
+
+- name: Install OpenCATTUS Web interface 
+  yum:
+    name: 
+      - opencattus-frontend
+      - opencattus-index

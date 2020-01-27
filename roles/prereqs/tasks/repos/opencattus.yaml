@@ -1,0 +1,10 @@
+- name: Add OpenHPC repositories
+  copy: 
+    dest: /etc/yum.repos.d/opencattusrepo.repo
+    content: |
+      [OpenCATTUS]
+      name=OpenCATTUS repository
+      baseurl=https://opencattusrepo.versatushpc.com.br/opencattus/{{ el_version }}/$basearch
+      gpgcheck=0
+      # gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-OpenHPC-1
+      enabled=0
