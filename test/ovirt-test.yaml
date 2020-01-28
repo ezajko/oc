@@ -3,7 +3,7 @@
   gather_facts: no
   vars:
     vm: ansible-test
-    ovirt_host: ovirt2
+    ovirt_host: rhv2 
   tasks:
     - assert:
         that:
