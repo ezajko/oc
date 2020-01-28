@@ -2,7 +2,7 @@
 - hosts: ovirtserver
   gather_facts: no
   vars:
-    vm: ansible-test
+    vm: ansible-test1
     ovirt_host: rhv2 
   tasks:
     - assert:
