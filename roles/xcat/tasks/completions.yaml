@@ -28,7 +28,7 @@
           if [[ "${COMP_LINE}" =~ ^(ls|rm|ch|mk)def ]]; then
               if [[ "${COMP_WORDS[-1]}" == "-t" ]] || [[ "${COMP_WORDS[-2]}" == "-t" ]]; then
                   COMPREPLY=( $(compgen -W "$(tables)" -- ${COMP_WORDS[-1]}))
-              elif [[ "${COMP_LINE}" =~ "-t networks" ]]; then
+              elif [[ "${COMP_LINE}" =~ "-t network" ]]; then
                   if  [[ "${COMP_WORDS[-2]}" == "-o" ]]; then
                       COMPREPLY=( $(compgen -W "$(networks)" -- ${COMP_WORDS[-1]}) )
                   fi
