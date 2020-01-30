@@ -24,7 +24,8 @@
       mgt=ipmi \
       groups=compute,all \
       netboot=xnba \
-      arch=x86_64
+      arch=x86_64 \
+      cons=ipmi serialport=0 serialspeed=115200
       kinit admin <<< "{{ ipadm_password }}"
       ipa host-add  --ip-address={{ i | node_ip }} {{ i | node_name }}.{{ domain_name }}
       ipa host-add-managedby --hosts={{ fqdn }} {{ i | node_name }}.{{ domain_name }}

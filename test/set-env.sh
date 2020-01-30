@@ -1,0 +1,1 @@
+export JUNIT_OUPUT_DIR=.
