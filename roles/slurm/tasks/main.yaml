@@ -17,38 +17,50 @@
       - ohpc-slurm-server
       - slurm-slurmdbd-ohpc
 
-- name: Configure ClusterName settings in slurm.conf
+- name: Configure settings in slurm.conf
   lineinfile:
-    regex: ClusterName=\S+
-    line: ClusterName={{ fqdn.split(".")[1] }}
+    regex: "{{ item.regex }}"
+    line: "{{ item.line }}"
     state: present
     path: /etc/slurm/slurm.conf
-
-- name: Configure ControlMachine settings in slurm.conf
+  loop:
+    - { line: "ClusterName={{ domain_name }}", regex: "^ClusterName=\S+" }
+    - { line: "ControlMachine={{ fqdn }}", regex: "^ControlMachine=\S+" }
+    - { line: "ControlAddr={{ fqdn }}", regex: "^ControlAddr=\S+" }
+    - { line: "ProctrackType=proctrack/linuxproc", regex: "^ProctrackType=\S+" }
+    - { line: "TaskPlugin=task/affinity", regex: "^TaskPlugin=\S+" }
+    - { line: "SelectType=select/cons_res", regex: "^SelectType=\S+" }
+    - { line: "SelectTypeParameters=CR_Core", regex: "^SelectTypeParameters=\S+" }
+    - { line: "JobAcctGatherType=jobacct_gather/linux", regex: "^JobAcctGatherType=\S+" }
+    - { line: "JobAcctGatherFrequence=30", regex: "^JobAcctGatherFrequence=\S+" }
+    - { line: "AccountStorageType=account_storage/slurmdbd", regex: "^AccountStorageType=\S+" }
+    - { line: "ReturnToService=2", regex: "^ReturnToService=\d" }
+    
+- name: Disable default nodes and partitions
   lineinfile:
-    regex: ControlMachine=\S+
-    line: ControlMachine={{ fqdn }}
-    state: present
-    path: /etc/slurm/slurm.conf
-
-- name: Disable default nodes
-  lineinfile:
-    regex: NodeName
+    regex: "{{ item }}"
     state: absent
     path: /etc/slurm/slurm.conf
+  loop: 
+    - NodeName
+    - PartitionName
 
-- name: Disable partitions
-  lineinfile:
-    regex: PartitionName
-    state: absent
-    path: /etc/slurm/slurm.conf
+- name: Test slurm configuration
+  shell: slurmd -C
 
-- name: Make Return to Service more readily available
-  lineinfile:
-    regex: '^ReturnToService=\d'
-    line: ReturnToService=2
-    state: present
-    path: /etc/slurm/slurm.conf
+- name: Enable ports on firewall
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    zone: public
+    state: enabled
+  loop:
+    - "6817/udp"
+    - "6817/tcp"
+    - "6818/tcp"
+    - "6818/tcp"
+    - "7321/tcp"
+    - "7321/tcp"
 
 - name: Create slurmdbd.conf
   copy:
@@ -118,6 +130,12 @@
 
 - name: Testing sacct
   shell: sacct
+
+- name: Create the cluster, and users to on database
+  shell: |
+    sacctmgr --immediate add cluster "{{ domain_name }}"
+    sacctmgr --immediate add account {{ slurm_user }}
+    sacctmgr --immediate add user {{ slurm_user }} defaultaccount={{ slurm_user }}
 
 - name: Create the list of required files to be synced to compute nodes with xCAT
   block:

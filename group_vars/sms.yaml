@@ -95,6 +95,7 @@ test: no
 
 # Slurm variables
 slurm_mysql_password: "RAr6V&80Vpb4"
+slurm_user: "slurm"
 
 # Mysql variables https://github.com/geerlingguy/ansible-role-mysql
 mysql_user_home: /var/lib/mysql
