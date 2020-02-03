@@ -59,7 +59,7 @@
     kinit admin <<< {{ ipaadmin_password }}
     ipa automountmap-add compute auto.spack
     ipa automountkey-add compute auto.master --key=/opt/spack --info=auto.spack
-    ipa automountkey-add compute auto.spack --key="*" --info="-fstype=nfs headnode.cluster.example.com:/opt/spack/&"
+    ipa automountkey-add compute auto.spack --key="*" --info="-fstype=nfs {{ fqdn }}:/opt/spack/&"
     ipa automountlocation-tofiles compute
 
 
