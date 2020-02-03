@@ -33,6 +33,7 @@ depends on the first's answer being thuthy
 """
 
 import os
+import stat
 import yaml
 import re
 from datetime import datetime
@@ -107,6 +108,7 @@ def write_answers_file(result):
         f.write("# ansible-playbook deploy.yaml -e @{}\n".format(filename))
         f.write("\n")
         yaml.dump(result, f)
+    os.chmod(filename, stat.S_IRUSR)
     display.display("Written {} file".format(filename))
 
 
