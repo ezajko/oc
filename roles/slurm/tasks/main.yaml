@@ -1,5 +1,6 @@
-- import_role: name=geerlingguy.mysql
+- include_role: name=geerlingguy.mysql
   become: yes
+  when: slurm_accounting == "yes"
 
 - name: Gather package facts
   package_facts:
@@ -15,7 +16,12 @@
   yum:
     name:
       - ohpc-slurm-server
+- name: Install Slurm DBD
+  yum:
+    name:
       - slurm-slurmdbd-ohpc
+  when: slurm_accounting == "yes"
+
 
 - name: Configure settings in slurm.conf
   lineinfile:
@@ -24,43 +30,43 @@
     state: present
     path: /etc/slurm/slurm.conf
   loop:
-    - { line: "ClusterName={{ domain_name }}", regex: "^ClusterName=\S+" }
-    - { line: "ControlMachine={{ fqdn }}", regex: "^ControlMachine=\S+" }
-    - { line: "ControlAddr={{ fqdn }}", regex: "^ControlAddr=\S+" }
-    - { line: "ProctrackType=proctrack/linuxproc", regex: "^ProctrackType=\S+" }
-    - { line: "TaskPlugin=task/affinity", regex: "^TaskPlugin=\S+" }
-    - { line: "SelectType=select/cons_res", regex: "^SelectType=\S+" }
-    - { line: "SelectTypeParameters=CR_Core", regex: "^SelectTypeParameters=\S+" }
-    - { line: "JobAcctGatherType=jobacct_gather/linux", regex: "^JobAcctGatherType=\S+" }
-    - { line: "JobAcctGatherFrequence=30", regex: "^JobAcctGatherFrequence=\S+" }
-    - { line: "AccountStorageType=account_storage/slurmdbd", regex: "^AccountStorageType=\S+" }
-    - { line: "ReturnToService=2", regex: "^ReturnToService=\d" }
-    
+    - '{ line: "ClusterName={{ domain_name }}", regex: "^ClusterName=\S+" }'
+    - '{ line: "ControlMachine={{ fqdn }}", regex: "^ControlMachine=\S+" }'
+    - '{ line: "ControlAddr={{ fqdn }}", regex: "^ControlAddr=\S+" }'
+    - '{ line: "ProctrackType=proctrack/linuxproc", regex: "^ProctrackType=\S+" }'
+    - '{ line: "TaskPlugin=task/affinity", regex: "^TaskPlugin=\S+" }'
+    - '{ line: "SelectTypeParameters=CR_Core", regex: "^SelectTypeParameters=\S+" }'
+    - '{ line: "JobAcctGatherType=jobacct_gather/linux", regex: "^JobAcctGatherType=\S+" }'
+    - '{ line: "JobAcctGatherFrequence=30", regex: "^JobAcctGatherFrequence=\S+" }'
+    - '{ line: "ReturnToService=2", regex: "^ReturnToService=\d" }'
+
+- name: "Enable slurm SelectType=select/cons_res"
+  lineinfile:
+    regex: '^SelectType=\S+'
+    line: "SelectType=select/cons_res"
+    state: present
+    path: /etc/slurm/slurm.conf
+  when: slurm_cons_res_enabled = "yes"
+
+- name: "Enable slurm SelectType=select/cons_res"
+  lineinfile:
+    regex: '^AccountStorageType=\S+'
+    line:  'AccountStorageType=account_storage/slurmdbd'
+    state: present
+    path: /etc/slurm/slurm.conf
+  when: slurm_accounting = "yes"
+
 - name: Disable default nodes and partitions
   lineinfile:
     regex: "{{ item }}"
     state: absent
     path: /etc/slurm/slurm.conf
-  loop: 
+  loop:
     - NodeName
     - PartitionName
 
 - name: Test slurm configuration
   shell: slurmd -C
-
-- name: Enable ports on firewall
-  firewalld:
-    port: "{{ item }}"
-    permanent: yes
-    zone: public
-    state: enabled
-  loop:
-    - "6817/udp"
-    - "6817/tcp"
-    - "6818/tcp"
-    - "6818/tcp"
-    - "7321/tcp"
-    - "7321/tcp"
 
 - name: Create slurmdbd.conf
   copy:
@@ -68,6 +74,8 @@
     src: /etc/slurm/slurmdbd.conf.example
     dest: /etc/slurm/slurmdbd.conf
     mode: '0600'
+  when: slurm_accounting == "yes"
+
 
 - name: Create log folder
   file:
@@ -106,8 +114,9 @@
       innodb_log_file_size=64M
       innodb_lock_wait_timeout=900
   register: innodb_conf
+  when: slurm_accounting == "yes"
 
-- when: innodb_conf.changed
+- when: slurm_accounting == "yes" and innodb_conf.changed
   block:
   - name: Stop MySQL
     systemd:
@@ -127,15 +136,18 @@
     name: slurmdbd
     state: started
     enabled: yes
+  when: slurm_accounting == "yes"
 
 - name: Testing sacct
   shell: sacct
+  when: slurm_accounting == "yes"
 
 - name: Create the cluster, and users to on database
   shell: |
     sacctmgr --immediate add cluster "{{ domain_name }}"
     sacctmgr --immediate add account {{ slurm_user }}
     sacctmgr --immediate add user {{ slurm_user }} defaultaccount={{ slurm_user }}
+  when: slurm_accounting == "yes"
 
 - name: Create the list of required files to be synced to compute nodes with xCAT
   block:

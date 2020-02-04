@@ -1,2 +1,4 @@
 queue_system: slurm
 slurm_partition_name: batch
+slurm_accounting: "yes"
+slurm_cons_res_enabled: "yes"

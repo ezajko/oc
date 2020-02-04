@@ -155,6 +155,21 @@
   help: |
     The Slurm partition name
 
+- name:  slurm_accounting
+  promp: Enable slurm accounting database?
+  default: 'yes'
+  choices: ['yes','no']
+  when: queue_system == "slurm"
+  help: |
+    Install and configure Slurm accounting. It will
+    install MariaDB and create slurm database.
+
+- name: slurm_cons_res_enabled
+  promp: Enable slurm SelectType=select/cons_res
+  default: 'yes'
+  choices: ['yes','no']
+  when: queue_system == "slurm"
+
 - name: postfix_install
   default: 'yes'
   choices: ['yes', 'no']
