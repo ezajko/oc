@@ -9,18 +9,20 @@
     - xcat/postinstall
     - etc
 
+- name: Log iso
+  debug: msg="ISO file = {{ iso_path }}{{ centos_iso }}"
+
 - name: Check for ISO
   stat:
     path: '{{ iso_path }}{{ centos_iso }}'
   register: iso
-  ignore_errors: yes
 
 - name: Download CentOS
   get_url:
     # url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
     url: http://ftp.unicamp.br/pub/centos/{{ centos_version }}/isos/x86_64/{{ centos_iso }}
     dest: '{{ iso_path }}{{ centos_iso }}'
-  when: iso.failed
+  when: iso.stat is defined and not iso.stat.exists
 
 - name: Generate Image
   shell: |

@@ -1,4 +1,7 @@
 - hosts: sms
   gather_facts: no
   tasks:
-  - include_tasks: "{{ file }}"
+    - name: Include vars
+      include_vars: ../group_vars/sms.yaml
+    - name: Include tasks
+      include_tasks: "{{ file }}"
