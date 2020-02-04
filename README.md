@@ -69,6 +69,18 @@ git submodule update
 
 `ansible -m include_tasks -a 'roles/xcat/tasks/install.yaml' sms -e @answers-...yaml`
 
+# Development 
+
+Configure the following git hook
+
+```
+cat <<EOF > .git/hooks/pre-commit
+#!/bin/bash -x
+git diff --name-status --cached | awk '/^M/ { print $2 }' | xargs -n1 -t ansible-lint
+EOF
+chmod +x .git/hooks/pre-commit
+```
+
 # Questions
 |name|prompt|default|choices|help|
 |---|---|---|---|---|
