@@ -1,14 +1,24 @@
----
+
 - hosts: sms
-  gather_facts: yes
-  pre_tasks:
-    - package_facts:
-        manager: auto
+  gather_facts: no
   tasks:
     # https://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisite://confluence.versatushpc.com.br/display/DEPLOY/Pre-requisites
     - assert:
         that:
           ansible_version.full >= "2.8.0"
+
+    - name: Target become reachable
+      wait_for_connection:
+        timeout: 320
+
+    - name: Gather facts
+      setup:
+        gather_subset:
+          - all
+
+    - name: Gather packages
+      package_facts:
+        manager: auto
     - import_role: name=checks
     - import_role: name=prereqs
     - import_role: name=network

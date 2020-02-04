@@ -2,17 +2,18 @@
 - hosts: ovirtserver
   gather_facts: no
   vars:
-    vm: ansible-test-node1
-    ovirt_host: rhv2
+    vm: ansible-test-node
   tasks:
-    - assert:
+    - name: Assertions
+      assert:
         that:
           - lookup("env", "OVIRT_PASSWORD")
 
-    - ovirt_vm:
+    - name: Stop VM
+      ovirt_vm:
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: "{{ vm }}"
@@ -20,15 +21,15 @@
         force: yes
       delegate_to: localhost
 
-    - ovirt_vm:
+    - name: Start VM
+      ovirt_vm:
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: "{{ vm }}"
         state: running
-        host: "{{ ovirt_host }}"
         force_migrate: yes
       delegate_to: localhost
 
