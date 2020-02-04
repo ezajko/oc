@@ -10,14 +10,18 @@
     directories:
       - /tftpboot/xcat/xnba/nodes
   pre_tasks:
-    - package_facts:
+    - name: Get package facts
+      package_facts:
         manager: auto
   tasks:
 
-  - name: Get trsuted interfaces
+  - name: Get trusted interfaces
     shell: |
+      set -o pipefail
       firewall-cmd --list-all --zone=trusted | awk '/interfaces/ { print $2 }'
     register: zones
+    changed_when: false
+    check_mode: yes
 
   - name: Internal interface should be in trusted zone
     assert:
@@ -25,29 +29,36 @@
         - "'{{ sms_eth_internal }}' in zones.stdout"
 
   - name: Check service
-    shell: |
-      systemctl is-active {{ service }}
+    systemd:
+      state: active
+      name: '{{ item }}'
     loop: '{{ services }}'
-    loop_control:
-      loop_var: service
     changed_when: false
+    check_mode: yes
 
   - name: Check directories
     loop: '{{ directories }}'
-    shell: |
-      test -d '{{ item }}'
+    file:
+      path: '{{ item }}'
+      state: directory
     changed_when: false
+    check_mode: yes
 
   - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
-    shell:
+    shell: |
+      set -o pipefail
       nmcli c show | grep 'Wired connection'
     changed_when: false
+    check_mode: yes
 
   - name: Check that first node is booted
-    shell: /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
+    shell: |
+      set -o pipefail
+      /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
     changed_when: false
     register: lsdef
     failed_when: lsdef.rc != 0 and lsdef.stdout != "booted"
+    check_mode: yes
 
   - name: Connect to first node
     shell: |
@@ -56,14 +67,19 @@
     register: ssh
     until: ssh.rc == 0
     delay: 5
-    retries: 5
+    retries: 20
+    check_mode: yes
 
   - name: Check that chrony is installed and running on node
     shell: |
+      set -o pipefail
       ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
     changed_when: false
+    check_mode: yes
 
   - name: Check that automount is working
     shell: |
+      set -o pipefail
       ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
     changed_when: false
+    check_mode: yes
