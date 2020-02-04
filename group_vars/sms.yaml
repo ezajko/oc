@@ -94,7 +94,7 @@ zabbix_timezone: 'America/Sao_Paulo'
 test: no
 
 # Slurm variables
-slurm_mysql_password: "RAr6V&80Vpb4"
+slurm_mysql_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
 slurm_user: "slurm"
 
 # Mysql variables https://github.com/geerlingguy/ansible-role-mysql
