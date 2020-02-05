@@ -68,8 +68,6 @@
 
       mkdir -p /etc/{ipa,ssh,sssd,openldap}/
 
-      : ${DHCPINTERFACES:='headnode.cluster.example.com|eth1'} # fallback for testing
-
       domain="$(hostname -d)"
       nodename="$(hostname --fqdn)"
       basedn="$(domain_to_basedn $domain)"
@@ -268,7 +266,7 @@
 
       # Configure Image Serverside
       test -f $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv || cat <<EOF2 > $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv
-      headnode.cluster.example.com
+      {{ fqdn }}
       @compute
       EOF2
 
@@ -282,7 +280,7 @@
       export ECDSA_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ecdsa_key.pub | cut -f 2 -d " "`
       export ED25519_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_ed25519_key.pub | cut -f 2 -d " "`
 
-      ssh-keyscan headnode.cluster.example.com > $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
+      ssh-keyscan {{ fqdn }}  > $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
       cat <<EOF2 >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
       node* ssh-dsa $DSA_KEY
       node* ssh-ed25519 $RSA_KEY

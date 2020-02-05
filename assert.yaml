@@ -21,7 +21,6 @@
       firewall-cmd --list-all --zone=trusted | awk '/interfaces/ { print $2 }'
     register: zones
     changed_when: false
-    check_mode: yes
 
   - name: Internal interface should be in trusted zone
     assert:
@@ -30,7 +29,7 @@
 
   - name: Check service
     systemd:
-      state: active
+      state: started
       name: '{{ item }}'
     loop: '{{ services }}'
     changed_when: false
@@ -49,7 +48,6 @@
       set -o pipefail
       nmcli c show | grep 'Wired connection'
     changed_when: false
-    check_mode: yes
 
   - name: Check that first node is booted
     shell: |
@@ -58,7 +56,6 @@
     changed_when: false
     register: lsdef
     failed_when: lsdef.rc != 0 and lsdef.stdout != "booted"
-    check_mode: yes
 
   - name: Connect to first node
     shell: |
@@ -68,18 +65,15 @@
     until: ssh.rc == 0
     delay: 5
     retries: 20
-    check_mode: yes
 
   - name: Check that chrony is installed and running on node
     shell: |
       set -o pipefail
       ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
     changed_when: false
-    check_mode: yes
 
   - name: Check that automount is working
     shell: |
       set -o pipefail
       ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
     changed_when: false
-    check_mode: yes
