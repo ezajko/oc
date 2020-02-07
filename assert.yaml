@@ -49,6 +49,11 @@
       nmcli c show | grep 'Wired connection'
     changed_when: false
 
+  - name: Test slurm
+    when: queue_system == "slurm"
+    command: sinfo
+    changed_when: false
+
   - name: Check that first node is booted
     shell: |
       set -o pipefail
