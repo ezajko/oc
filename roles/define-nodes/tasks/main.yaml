@@ -282,10 +282,10 @@
 
       ssh-keyscan {{ fqdn }}  > $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
       cat <<EOF2 >> $IMG_ROOTIMGDIR/etc/ssh/ssh_known_hosts
-      node* ssh-dsa $DSA_KEY
-      node* ssh-ed25519 $RSA_KEY
-      node* ecdsa-sha2-nistp256 $ECDSA_KEY
-      node* ssh-rsa $ED25519_KEY
+      {{ nodes_prefix }}* ssh-dsa $DSA_KEY
+      {{ nodes_prefix }}* ssh-ed25519 $RSA_KEY
+      {{ nodes_prefix }}* ecdsa-sha2-nistp256 $ECDSA_KEY
+      {{ nodes_prefix }}* ssh-rsa $ED25519_KEY
       EOF2
 
 - name: Add hostbased-auth to image
