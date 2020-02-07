@@ -261,8 +261,8 @@
       #!/bin/sh -x
 
       # Configure Image Clientside
-      grep -E 'HostbasedAuthentication yes' $IMG_ROOTIMGDIR/etc/ssh/ssh_config || echo -e "\tHostbasedAuthentication yes" >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
       grep -E 'EnableSSHKeysign yes'        $IMG_ROOTIMGDIR/etc/ssh/ssh_config || echo -e "\tEnableSSHKeysign yes"        >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
+      grep -E 'HostbasedAuthentication yes' $IMG_ROOTIMGDIR/etc/ssh/ssh_config || echo -e "\tHostbasedAuthentication yes" >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
 
       # Configure Image Serverside
       test -f $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv || cat <<EOF2 > $IMG_ROOTIMGDIR/etc/ssh/shosts.equiv
