@@ -31,7 +31,7 @@
 
 - name: nodes_prefix
   prompt: Node prefix?
-  default: node
+  default: n
   private: no
 
 - name: nodes_separator
@@ -41,7 +41,7 @@
 
 - name: nodes_padding
   prompt: Node name padding?
-  default: 3
+  default: 2
   private: no
 
 - name: sms_eth_external
