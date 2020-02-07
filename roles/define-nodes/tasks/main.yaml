@@ -293,6 +293,9 @@
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/hostbased-auth
 
+- name: Get package facts
+  package_facts: manager=auto
+
 - name: Define hosts in PBS
   when: "'pbspro-server-ohpc' in ansible_facts.packages"
   include_tasks: roles/pbs/tasks/setup-nodes.yaml
