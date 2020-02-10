@@ -12,11 +12,11 @@
   when: queue_system == "slurm"
   assert:
     that:
-      - 'slurm in {{ node }}'
-      - 'Sockets in {{ node }}.slurm'
-      - 'CoresPerSocket in {{ node }}.slurm'
-      - 'ThreadsPerCore in {{ node }}.slurm'
-      - 'Sockets in {{ node }}.slurm'
+      - '"slurm" in {{ node }}'
+      - '"Sockets" in {{ node }}.slurm'
+      - '"CoresPerSocket" in {{ node }}.slurm'
+      - '"ThreadsPerCore" in {{ node }}.slurm'
+      - '"Sockets" in {{ node }}.slurm'
   loop: "{{ nodes }}"
   loop_control:
     loop_var: node
