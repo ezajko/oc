@@ -6,7 +6,7 @@
   assert:
     that:
       - 'nodes is defined'
-      - 'nodes | lenght > 0'
+      - 'nodes | length > 0'
 
 - name: Verify that nodes.yaml is correct for Slurm
   when: queue_system == "slurm"
