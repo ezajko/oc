@@ -36,5 +36,3 @@
     - import_role: name=spack
     - import_role: name=latex-support
     - import_role: name=define-nodes
-
-
