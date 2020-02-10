@@ -53,6 +53,10 @@
     when: queue_system == "slurm"
     command: sinfo
     changed_when: false
+    register: sinfo
+    until: sinfo.rc == 0
+    delay: 5
+    retries: 20
 
   - name: Check ssh keys permissions
     file:
@@ -63,7 +67,6 @@
     check_mode: yes
     register: ssh_keys
     failed_when: ssh_keys.changed
-
 
   - name: Check that first node is booted
     shell: |
