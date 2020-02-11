@@ -1,1 +1,1 @@
-export JUNIT_OUPUT_DIR=.
+export JUNIT_OUTPUT_DIR=.
