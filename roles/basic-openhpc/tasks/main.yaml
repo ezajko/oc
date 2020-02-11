@@ -28,7 +28,7 @@
   shell: |
     exportfs -a
 
+- import_tasks: ipa-join.yaml
 - import_tasks: automount.yaml
 - import_tasks: image.yaml
 - import_tasks: development.yaml
-

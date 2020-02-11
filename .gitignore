@@ -10,3 +10,5 @@ answers*.yaml
 .mypy_cache/*
 draft.sh
 **/*.pyc
+*.xml
+*.pid

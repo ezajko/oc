@@ -149,3 +149,7 @@ mysql_expire_logs_days: "10"
 package_exclusions:
   - mod_ssl
   - "*werewolf*"
+
+# SSH Variables
+ssh_key_group: ssh_keys
+ssh_key_types: [dsa, ecdsa, ed25519, rsa]

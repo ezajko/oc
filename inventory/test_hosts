@@ -3,4 +3,4 @@ ansible-test1 ansible_host=172.21.1.64 ansible_user=root
 ansible-test2 ansible_host=172.21.1.68 ansible_user=root
 
 [ovirtserver]
-ovirt.local.versatushpc.com.br
+rhv.local.versatushpc.com.br ansible_host=10.20.0.100

@@ -1,0 +1,23 @@
+- name: Load nodes.yaml
+  include_vars:
+    file: nodes.yaml
+
+- name: Verify that nodes.yaml is correct
+  assert:
+    that:
+      - 'nodes is defined'
+      - 'nodes | length > 0'
+
+- name: Verify that nodes.yaml is correct for Slurm
+  when: queue_system == "slurm"
+  assert:
+    that:
+      - '"slurm" in {{ node }}'
+      - '"Sockets" in {{ node }}.slurm'
+      - '"CoresPerSocket" in {{ node }}.slurm'
+      - '"ThreadsPerCore" in {{ node }}.slurm'
+      - '"Sockets" in {{ node }}.slurm'
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: node
+

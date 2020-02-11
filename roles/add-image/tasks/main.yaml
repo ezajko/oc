@@ -22,7 +22,7 @@
     # url: http://mirror.cc.if.ufrj.br/iso/CentOS-7-x86_64-DVD-1810.iso
     url: http://ftp.unicamp.br/pub/centos/{{ centos_version }}/isos/x86_64/{{ centos_iso }}
     dest: '{{ iso_path }}{{ centos_iso }}'
-  when: iso.stat is defined and not iso.stat.exists
+  when: not iso.stat.exists
 
 - name: Generate Image
   shell: |
@@ -89,19 +89,29 @@
 
 - name: Create keys
   shell: |
-    for t in dsa ecdsa ed25519 rsa; do ssh-keygen -t $t -f /opt/versatushpc/xcat/ssh_host_${t}_key -N '' <<< y; done
+    for t in {{ ssh_key_types | join(" ") }}; do ssh-keygen -t $t -f \
+      /opt/versatushpc/xcat/ssh_host_${t}_key -N '' <<< y; done
   args:
     creates: '/opt/versatushpc/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
+
+- name: Fix ssh keys permissions
+  file:
+    path: "/opt/versatushpc/xcat/ssh_host_{{ item }}_key"
+    group: ssh_keys
+    mode: '0640'
+  loop: "{{ ssh_key_types }}"
 
 - name: Create create-ssh-key postinstall
   copy:
     dest: /opt/versatushpc/xcat/postinstall/create-ssh-key
     mode: '0755'
     content: |
-      #!/bin/bash -x
+      #!/bin/bash -xe
+      set -o pipefail
       \cp -vf /opt/versatushpc/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
-      exit 0
-      eof
+      SSH_GID=`chroot ${IMG_ROOTIMGDIR} getent group ssh_keys | cut -f3 -d:`
+      chown 0:$SSH_GID ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key
+      chmod 640 ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key
 
 - name: Add postinstall for Create keys
   shell: |

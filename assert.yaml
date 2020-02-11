@@ -10,14 +10,17 @@
     directories:
       - /tftpboot/xcat/xnba/nodes
   pre_tasks:
-    - package_facts:
+    - name: Get package facts
+      package_facts:
         manager: auto
   tasks:
 
-  - name: Get trsuted interfaces
+  - name: Get trusted interfaces
     shell: |
+      set -o pipefail
       firewall-cmd --list-all --zone=trusted | awk '/interfaces/ { print $2 }'
     register: zones
+    changed_when: false
 
   - name: Internal interface should be in trusted zone
     assert:
@@ -25,30 +28,89 @@
         - "'{{ sms_eth_internal }}' in zones.stdout"
 
   - name: Check service
-    shell: |
-      systemctl is-active {{ service }}
+    systemd:
+      state: started
+      name: '{{ item }}'
     loop: '{{ services }}'
-    loop_control:
-      loop_var: service
     changed_when: false
+    check_mode: yes
+
+  - name: Check slurm service
+    systemd:
+      name: "{{ item }}"
+      state: started
+    loop: [slurmctld, slurmdbd]
+    check_mode: yes
+    register: slurm
+    failed_when: slurm.changed
 
   - name: Check directories
     loop: '{{ directories }}'
-    shell: |
-      test -d '{{ item }}'
+    file:
+      path: '{{ item }}'
+      state: directory
     changed_when: false
+    check_mode: yes
 
   - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
-    shell:
+    shell: |
+      set -o pipefail
       nmcli c show | grep 'Wired connection'
     changed_when: false
 
+  - name: Test slurm
+    when: queue_system == "slurm"
+    command: sinfo
+    changed_when: false
+    register: sinfo
+    until: sinfo.rc == 0
+    delay: 5
+    retries: 20
+
+  - name: Check ssh keys permissions
+    file:
+      path: "/opt/versatushpc/xcat/ssh_host_{{ item }}_key"
+      group: ssh_keys
+      mode: '0640'
+    loop: "{{ ssh_key_types }}"
+    check_mode: yes
+    register: ssh_keys
+    failed_when: ssh_keys.changed
+
+  - name: Get image ssh_keys gid
+    shell: |
+      set -o pipefail
+      chroot /install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/ getent group ssh_keys | cut -f3 -d:
+    register: ssh_keys_gid
+
+  - name: Check image ssh keys permissions
+    shell: |
+      set -o pipefail
+      for key in /install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_*_key; do
+        if [[ "$(stat --format '%g' $key)" != "{{ ssh_keys_gid.stdout }}" ]]; then
+          echo "$(stat --format '%g' $key)" != "{{ ssh_keys_gid.stdout }}"
+          exit -1
+        fi
+      done
+
+  - name: Check SSH keys in image
+    register: cksum
+    failed_when: cksum.rc != 0 or cksum.stdout != '1'
+    shell: |
+      set -o pipefail
+      md5sum /opt/versatushpc/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
+    loop: "{{ ssh_key_types }}"
+
   - name: Check that first node is booted
-    shell: /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
+    shell: |
+      set -o pipefail
+      /opt/xcat/bin/lsdef {{ 0 | node_name }} -i status | awk -F= '/status/ { print $2 }'
     changed_when: false
     register: lsdef
     failed_when: lsdef.rc != 0 and lsdef.stdout != "booted"
 
+  # I'm commenting this until we get OPENCATTUS-190 fixed
+  #
   - name: Connect to first node
     shell: |
       ssh {{ 0 | node_name }} -- echo okay
@@ -56,14 +118,16 @@
     register: ssh
     until: ssh.rc == 0
     delay: 5
-    retries: 5
+    retries: 20
 
   - name: Check that chrony is installed and running on node
     shell: |
+      set -o pipefail
       ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
     changed_when: false
 
   - name: Check that automount is working
     shell: |
+      set -o pipefail
       ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
     changed_when: false

@@ -15,7 +15,7 @@
     mode: '0755'
     content: |
       #!/bin/sh
-      sed -i s/0.centos.pool.ntp.org/headnode.cluster.example.com/ $IMG_ROOTIMGDIR/etc/chrony.conf
+      sed -i s/0.centos.pool.ntp.org/{{ fqdn }}/ $IMG_ROOTIMGDIR/etc/chrony.conf
       sed -i /centos.pool/d $IMG_ROOTIMGDIR/etc/chrony.conf
 
 - name: Add postinstall to the image
