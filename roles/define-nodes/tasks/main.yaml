@@ -314,6 +314,8 @@
     source /etc/profile.d/xcat.sh
     genimage {{ genimage_name }}
     packimage {{ genimage_name }}
+  args:
+    creates: /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/
   tags:
     - genimage
 
