@@ -35,6 +35,15 @@
     changed_when: false
     check_mode: yes
 
+  - name: Check slurm service
+    systemd:
+      name: "{{ item }}"
+      state: started
+    loop: [slurmctld, slurmdbd]
+    check_mode: yes
+    register: slurm
+    failed_when: slurm.changed
+
   - name: Check directories
     loop: '{{ directories }}'
     file:
