@@ -2,7 +2,7 @@
   get_url:
     url: http://mirror.ctan.org/systems/texlive/tlnet/install-tl.zip
     dest: /root/install-tl.zip
-  retries: 5
+  retries: 20
   delay: 1
 
 - name: Unzip TexLive
