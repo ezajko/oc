@@ -153,3 +153,6 @@ package_exclusions:
 # SSH Variables
 ssh_key_group: ssh_keys
 ssh_key_types: [dsa, ecdsa, ed25519, rsa]
+
+# OpenCATTUS variables
+opencattus_path: /opt/opencattus

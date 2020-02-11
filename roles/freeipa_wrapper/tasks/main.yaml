@@ -1,0 +1,21 @@
+---
+- name: Stop if IPA is already installed
+  fail:
+    msg: |
+      FreeIPA is already installed, reinstalling is not supported, sorry.
+    when: '"ipa-server" in ansible_facts.packages'
+
+- include_role:
+    name: ipaserver
+  vars:
+    state: present
+  when: '"ipa-server" not in ansible_facts.packages'
+
+- name: Configure dyndns_iface
+  lineinfile:
+    path: /etc/sssd/sssd.conf
+    insertafter: "[domain/{{ domain_name }}]"
+    line: "{{ item }}"
+  loop:
+    - "dyndns_update = True"
+    - "dyndns_iface = {{ sms_eth_internal }}"

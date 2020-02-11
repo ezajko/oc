@@ -46,7 +46,7 @@
 
 - name: Add postinstall
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/ganglia
+    dest: "{{ opencattus_path }}/xcat/postinstall/ganglia"
     mode: '0755'
     content: |
       #!/bin/bash -x
@@ -63,5 +63,4 @@
 - name: Install postinstall
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/ganglia
- 
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/ganglia

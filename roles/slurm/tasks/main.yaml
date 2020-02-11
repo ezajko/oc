@@ -152,7 +152,7 @@
 
 - name:  Create postinstall script
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/slurm
+    dest: "{{ opencattus_path }}/xcat/postinstall/slurm"
     mode: "0755"
     content: |
       if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
@@ -175,4 +175,4 @@
 - name: Add posinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/slurm
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/slurm

@@ -12,7 +12,7 @@
 
 - name: Create the automount script file to be run at each compute note boot process
   copy:
-    dest: /opt/versatushpc/xcat/postscripts/freeipa-automount-compute
+    dest: "{{ opencattus_path }}/xcat/postscripts/freeipa-automount-compute"
     content: |
       exec 1> >(logger -s -t xCAT -p local4.info) 2>&1
       touch /var/lib/ipa-client/sysrestore/.workaround # workaround on ipa-client-automount bug

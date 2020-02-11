@@ -29,10 +29,10 @@
       kinit admin <<< "{{ ipadm_password }}"
       ipa host-add  --ip-address={{ i | node_ip }} {{ i | node_name }}.{{ domain_name }}
       ipa host-add-managedby --hosts={{ fqdn }} {{ i | node_name }}.{{ domain_name }}
-      ipa host-mod $(cat /opt/versatushpc/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ i | node_name }}.{{ domain_name }}
+      ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ i | node_name }}.{{ domain_name }}
       makehosts {{ i | node_name }}
       makedhcp {{ i | node_name }}
-      ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k /opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab
+      ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ i | node_name }}-krb5.keytab
 
 - name: Configure Infiniband
   when: ib_stack != "none"
@@ -42,7 +42,7 @@
   lineinfile:
     path: '{{ synclist }}'
     create: yes
-    line: '/opt/versatushpc/etc/{{ i | node_name }}-krb5.keytab -> ({{ i | node_name }}) /etc/krb5.keytab'
+    line: '{{ opencattus_path }}/etc/{{ i | node_name }}-krb5.keytab -> ({{ i | node_name }}) /etc/krb5.keytab'
   loop: '{{ nodes }}'
   loop_control:
     index_var: i
@@ -54,7 +54,6 @@
     chdef -t osimage -o {{ genimage_name }} synclists="{{ synclist }}"
 
 - name: Create host group
-
   shell: |
     kinit admin <<< {{ ipadm_password }}
     ipa hostgroup-add --desc="Compute Nodes" compute
@@ -82,7 +81,7 @@
 
 - name: Add hostbased-auth postscript
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/hostbased-auth
+    dest: "{{ opencattus_path }}/xcat/postinstall/hostbased-auth"
     mode: '0755'
     content: |
       #!/bin/sh -x
@@ -118,7 +117,7 @@
 - name: Add hostbased-auth to image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/hostbased-auth
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/hostbased-auth
 
 - name: Get package facts
   package_facts: manager=auto

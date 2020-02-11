@@ -128,7 +128,7 @@
 
 - name: Install Zabbix angent postinstall
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/zabbix-agent
+    dest: "{{ opencattus_path }}/xcat/postinstall/zabbix-agent"
     mode: '0755'
     content: |
       #!/bin/bash
@@ -145,7 +145,7 @@
 - name: Add postinstall to the image
   shell: |
     souce /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -o postinstall=/opt/versatushpc/xcat/postinstall/zabbix-agent
+    chdef -t osimage -o {{ genimage_name }} -o postinstall={{ opencattus_path }}/xcat/postinstall/zabbix-agent
     genimage {{ genimage_name }}
     packimage {{ genimage_name }}
 

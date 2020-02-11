@@ -2,7 +2,7 @@
   file:
     state: directory
     mode: '0755'
-    path: '/opt/versatushpc/{{ item }}'
+    path: '{{ opencattus_path }}/{{ item }}'
   loop:
     - xcat
     - xcat/postscripts
@@ -34,12 +34,12 @@
 - name: Create links
   file:
     state: link
-    src: /opt/versatushpc/xcat/postscripts
+    src: "{{ opencattus_path }}/xcat/postscripts"
     dest: /install/postscripts/versatushpc
 
 - name: Create add-cluster-key.sh postinstall
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/add-cluster-key
+    dest: "{{ opencattus_path }}/xcat/postinstall/add-cluster-key"
     mode: '0755'
     content: |
       #!/bin/bash
@@ -56,7 +56,7 @@
 - name: Add postinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/add-cluster-key
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/add-cluster-key
 
 - name: Add freeipa-client to the image
   blockinfile:
@@ -89,10 +89,9 @@
 
 - name: Create keys
   shell: |
-    for t in {{ ssh_key_types | join(" ") }}; do ssh-keygen -t $t -f \
-      /opt/versatushpc/xcat/ssh_host_${t}_key -N '' <<< y; done
+    for t in dsa ecdsa ed25519 rsa; do ssh-keygen -t $t -f {{ opencattus_path }}/xcat/ssh_host_${t}_key -N '' <<< y; done
   args:
-    creates: '/opt/versatushpc/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
+    creates: '{{ opencattus_path }}/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
 
 - name: Fix ssh keys permissions
   file:
@@ -103,7 +102,7 @@
 
 - name: Create create-ssh-key postinstall
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/create-ssh-key
+    dest: "{{ opencattus_path }}/xcat/postinstall/create-ssh-key"
     mode: '0755'
     content: |
       #!/bin/bash -xe
@@ -116,7 +115,7 @@
 - name: Add postinstall for Create keys
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/create-ssh-key
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/create-ssh-key
 
 - name: Configure Infiniband
   when: ib_stack != "none"
