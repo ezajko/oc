@@ -106,10 +106,12 @@
     dest: /opt/versatushpc/xcat/postinstall/create-ssh-key
     mode: '0755'
     content: |
-      #!/bin/bash -x
+      #!/bin/bash -xe
+      set -o pipefail
       \cp -vf /opt/versatushpc/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
-      exit 0
-      eof
+      SSH_GID=`chroot ${IMG_ROOTIMGDIR} getent group ssh_keys | cut -f3 -d:`
+      chown 0:$SSH_GID ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key
+      chmod 640 ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key
 
 - name: Add postinstall for Create keys
   shell: |

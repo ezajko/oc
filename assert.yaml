@@ -77,15 +77,21 @@
     register: ssh_keys
     failed_when: ssh_keys.changed
 
+  - name: Get image ssh_keys gid
+    shell: |
+      set -o pipefail
+      chroot /install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/ getent group ssh_keys | cut -f3 -d:
+    register: ssh_keys_gid
+
   - name: Check image ssh keys permissions
-    file:
-      path: "/install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh_host_{{ item }}_key"
-      group: ssh_keys
-      mode: '0640'
-    loop: "{{ ssh_key_types }}"
-    check_mode: yes
-    register: ssh_keys
-    failed_when: ssh_keys.changed
+    shell: |
+      set -o pipefail
+      for key in /install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_*_key; do
+        if [[ "$(stat --format '%g' $key)" != "{{ ssh_keys_gid.stdout }}" ]]; then
+          echo "$(stat --format '%g' $key)" != "{{ ssh_keys_gid.stdout }}"
+          exit -1
+        fi
+      done
 
   - name: Check that first node is booted
     shell: |
