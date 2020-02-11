@@ -77,6 +77,16 @@
     register: ssh_keys
     failed_when: ssh_keys.changed
 
+  - name: Check image ssh keys permissions
+    file:
+      path: "/install/netboot/{{ el_variant | default('centos' ) }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh_host_{{ item }}_key"
+      group: ssh_keys
+      mode: '0640'
+    loop: "{{ ssh_key_types }}"
+    check_mode: yes
+    register: ssh_keys
+    failed_when: ssh_keys.changed
+
   - name: Check that first node is booted
     shell: |
       set -o pipefail
@@ -85,23 +95,25 @@
     register: lsdef
     failed_when: lsdef.rc != 0 and lsdef.stdout != "booted"
 
-  - name: Connect to first node
-    shell: |
-      ssh {{ 0 | node_name }} -- echo okay
-    changed_when: false
-    register: ssh
-    until: ssh.rc == 0
-    delay: 5
-    retries: 20
+  # I'm commenting this until we get OPENCATTUS-190 fixed
+  #
+  # - name: Connect to first node
+  #   shell: |
+  #     ssh {{ 0 | node_name }} -- echo okay
+  #   changed_when: false
+  #   register: ssh
+  #   until: ssh.rc == 0
+  #   delay: 5
+  #   retries: 20
 
-  - name: Check that chrony is installed and running on node
-    shell: |
-      set -o pipefail
-      ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
-    changed_when: false
+  # - name: Check that chrony is installed and running on node
+  #   shell: |
+  #     set -o pipefail
+  #     ssh {{ 0 | node_name }} -- "rpm -q chrony; systemctl is-active chronyd"
+  #   changed_when: false
 
-  - name: Check that automount is working
-    shell: |
-      set -o pipefail
-      ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
-    changed_when: false
+  # - name: Check that automount is working
+  #   shell: |
+  #     set -o pipefail
+  #     ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
+  #   changed_when: false
