@@ -31,7 +31,7 @@
 
 - name: nodes_prefix
   prompt: Node prefix?
-  default: node
+  default: n
   private: no
 
 - name: nodes_separator
@@ -41,7 +41,7 @@
 
 - name: nodes_padding
   prompt: Node name padding?
-  default: 3
+  default: 2
   private: no
 
 - name: sms_eth_external
@@ -120,10 +120,12 @@
   private: no
   default: ADMIN
   prompt: What is the default IPMI username
+  when: service_network_enabled
 
 - name: ipmi_password
   private: yes
   prompt: IPMI default password
+  when: service_network_enabled
   help: |
     This can be overriden by node basis. The password
     is setup for IPMI connection together with IPMI username

@@ -17,3 +17,18 @@
   yum:
     name:
       - python-netaddr
+
+- name: Gather facts
+  setup:
+    gather_subset:
+      - all
+
+- name: Check that the provided interfaces exists
+  assert:
+    that:
+      - '"{{ item }}" in ansible_interfaces'
+  loop:
+    - "{{ sms_eth_external }}"
+    - "{{ sms_eth_internal }}"
+
+- import_tasks: check-nodes-yaml.yaml

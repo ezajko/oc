@@ -3,9 +3,9 @@
   gather_facts: no
   vars:
     vm: ansible-test
-    ovirt_host: rhv2 
   tasks:
-    - assert:
+    - name: Check environment
+      assert:
         that:
           - lookup("env", "OVIRT_PASSWORD")
 
@@ -13,14 +13,15 @@
       ovirt_snapshot_facts:
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         vm: "{{ vm }}"
         description: before-ansible
       delegate_to: localhost
 
-    - debug:
+    - name: Show snapshots
+      debug:
         var: ovirt_snapshots
       delegate_to: localhost
 
@@ -28,7 +29,7 @@
       ovirt_vm:
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: "{{ vm }}"
@@ -41,23 +42,30 @@
         vm_name: "{{ vm }}"
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         state: restore
         snapshot_id: '{{ ovirt_snapshots[0].id }}'
       delegate_to: localhost
+      retries: 10
+      delay: 3
+      register: restore_snapshot
+      until: not restore_snapshot.failed
 
     - name: Start virtual machine
       ovirt_vm:
         auth:
           insecure: yes
-          url: https://ovirt.local.versatushpc.com.br/ovirt-engine/api
+          url: https://rhv.local.versatushpc.com.br/ovirt-engine/api
           username: admin@internal
           password: '{{ lookup("env", "OVIRT_PASSWORD") }}'
         name: "{{ vm }}"
         state: running
         force_migrate: yes
-        host: "{{ ovirt_host }}"
+        timeout: 10
       delegate_to: localhost
-
+      retries: 10
+      delay: 3
+      register: start_vm
+      until: not start_vm.failed
