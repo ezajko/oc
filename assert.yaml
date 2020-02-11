@@ -93,6 +93,14 @@
         fi
       done
 
+  - name: Check SSH keys in image
+    register: cksum
+    failed_when: cksum.rc != 0 or cksum.stdout != '1'
+    shell: |
+      set -o pipefail
+      md5sum /opt/versatushpc/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
+    loop: "{{ ssh_key_types }}"
+
   - name: Check that first node is booted
     shell: |
       set -o pipefail
