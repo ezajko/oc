@@ -29,6 +29,14 @@
     It uses the same password as admin password entered before. This is used
     for authenticating to LDAP.
 
+# This variable is used by freeipa role
+# https://github.com/freeipa/ansible-freeipa/tree/master/roles/ipaserver#dns-variables
+- name: ipaserver_no_dnssec_validation
+  private: no
+  choices: [true, false]
+  default: false
+  prompt: Disable DNSSEC validation on this server?
+
 - name: nodes_prefix
   prompt: Node prefix?
   default: n
