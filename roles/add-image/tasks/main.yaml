@@ -95,7 +95,7 @@
 
 - name: Fix ssh keys permissions
   file:
-    path: "/opt/versatushpc/xcat/ssh_host_{{ item }}_key"
+    path: "{{ opencattus_path }}/xcat/ssh_host_{{ item }}_key"
     group: ssh_keys
     mode: '0640'
   loop: "{{ ssh_key_types }}"
@@ -107,7 +107,7 @@
     content: |
       #!/bin/bash -xe
       set -o pipefail
-      \cp -vf /opt/versatushpc/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
+      \cp -vf {{ opencattus_path }}/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
       SSH_GID=`chroot ${IMG_ROOTIMGDIR} getent group ssh_keys | cut -f3 -d:`
       chown 0:$SSH_GID ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key
       chmod 640 ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key

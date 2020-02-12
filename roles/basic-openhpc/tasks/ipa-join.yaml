@@ -1,7 +1,7 @@
 - name: Create ipa-join postscript
   copy:
-    dest: /opt/versatushpc/xcat/postscripts/ipa-join
-    mode: '0755'
+    dest: "{{ opencattus_path }}/xcat/postscripts/ipa-join"
+    mode: "0755"
     content: |
       domain_to_basedn() {
           for i in $(echo $1 | tr -s . ' '); do
