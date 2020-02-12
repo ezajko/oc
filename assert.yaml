@@ -42,6 +42,7 @@
     loop: [slurmctld, slurmdbd]
     check_mode: yes
     register: slurm
+    when: queue_system == "slurm"
     failed_when: slurm.changed
 
   - name: Check directories
