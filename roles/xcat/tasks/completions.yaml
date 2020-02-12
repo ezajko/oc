@@ -42,7 +42,9 @@
                   fi
               fi
           elif [[ "${COMP_LINE}" =~ ^nodeset ]]; then
-              if  ([[ "${COMP_WORDS[-2]}" == "osimage" ]] && [[ "${COMP_WORDS[-1]}" == "=" ]]) || ([[ "${COMP_WORDS[-3]}" == "osimage" ]] && [[ "${COMP_WORDS[-2]}" == "=" ]]); then
+              if  ([[ "${COMP_WORDS[-2]}" == "osimage" ]] && [[ "${COMP_WORDS[-1]}" == "=" ]]) || \
+                  ([[ "${COMP_WORDS[-3]}" == "osimage" ]] && [[ "${COMP_WORDS[-2]}" == "=" ]]); then
+
                   COMPREPLY=( $(compgen -W "$(osimages)" -- ${COMP_WORDS[-1]#*=}) )
               fi
           elif [[ "${COMP_LINE}" =~ ^(genimage|packimage) ]]; then

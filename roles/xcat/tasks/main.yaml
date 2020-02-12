@@ -5,3 +5,7 @@
 - import_tasks: selinux.yaml
 - import_tasks: sanitize-ssh.yaml
 - import_tasks: postscripts.yaml
+
+- name: Invoke service
+  command: /bin/true
+  notify: Print xCAT shell load instructions
