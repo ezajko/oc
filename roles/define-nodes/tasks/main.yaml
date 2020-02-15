@@ -141,6 +141,9 @@
     source /etc/profile.d/xcat.sh
     genimage {{ genimage_name }}
     packimage {{ genimage_name }}
+  register: genimage
+  failed_when: genimage.rc != 0 or genimage.stdout | regex_findall('Error downloading packages') \
+    or genimage.stderr | regex_findall('Error downloading packages')
   tags:
     - genimage
 
