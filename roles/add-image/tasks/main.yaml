@@ -96,6 +96,9 @@
     jid: "{{ copycds.ansible_job_id }}"
   register: wait
   until: wait.finished
+  poll: 30
+  retries: 300
+  delay: 30
 
 - name: Add postinstall to the image
   shell: |
