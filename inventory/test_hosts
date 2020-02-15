@@ -4,5 +4,8 @@ ansible-test2 ansible_host=172.21.1.68 ansible_user=root
 ansible-test3 ansible_host=172.21.1.74 ansible_user=root
 ansible-test4 ansible_host=172.21.1.78 ansible_user=root
 
+[sms:vars]
+ansible_ssh_extra_args = '-o StrictHostKeyChecking=no'
+
 [ovirtserver]
 rhv.local.versatushpc.com.br ansible_host=10.20.0.100
