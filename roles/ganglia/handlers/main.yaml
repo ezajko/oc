@@ -1,5 +1,7 @@
 ---
 # handlers file for ganglia
+- import_tasks: ../../xcat/handlers/main.yaml
+
 - name: enable http and https in firewall
   firewalld:
     state: enabled
@@ -13,12 +15,6 @@
   service:
     name: httpd
     state: restarted
-
-- name: xcat genimage
-  shell: |
-    source /etc/profile.d/xcat.sh
-    genimage {{ genimage_name }}
-    packimage {{ genimage_name }}
 
 - name: restart gmond and gmetad
   systemd:

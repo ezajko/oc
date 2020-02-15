@@ -118,6 +118,7 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/hostbased-auth
+  notify: xcat genimage
 
 - name: Get package facts
   package_facts: manager=auto
@@ -134,14 +135,6 @@
   yum:
     name: pigz
     state: present
-
-- name: Generate and pack image
-  shell: |
-    source /etc/profile.d/xcat.sh
-    genimage {{ genimage_name }}
-    packimage {{ genimage_name }}
-  tags:
-    - genimage
 
 - name: Run nodeset on new nodes
   shell: |

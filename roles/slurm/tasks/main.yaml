@@ -176,3 +176,4 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/slurm
+  notify: xcat genimage

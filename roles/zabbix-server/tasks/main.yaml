@@ -146,9 +146,7 @@
   shell: |
     souce /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -o postinstall={{ opencattus_path }}/xcat/postinstall/zabbix-agent
-    genimage {{ genimage_name }}
-    packimage {{ genimage_name }}
-
+  notify: xcat genimage
 
 - name: Create SELinux policy
   copy:

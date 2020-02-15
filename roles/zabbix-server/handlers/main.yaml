@@ -1,4 +1,7 @@
+- import_tasks: ../../xcat/handlers/main.yaml
+
 - name: Restart HTTPD
   systemd:
     name: httpd
     state: restarted
+

@@ -1,2 +1,7 @@
 - name: Print xCAT shell load instructions
   debug: msg="Run source /etc/profile.d/xcat.sh or start a new shell session to get access to xcat commands"
+
+- name: xcat genimage
+  shell: |
+    source /etc/profile.d/xcat.sh
+    genimage {{ genimage_name }} && packimage {{ genimage_name }}

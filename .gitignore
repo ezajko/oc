@@ -12,3 +12,4 @@ draft.sh
 **/*.pyc
 *.xml
 *.pid
+.ignore
