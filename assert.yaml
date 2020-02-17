@@ -107,6 +107,11 @@
     shell: |
       grep -E '^{{ sms_ip }}\s+{{ fqdn }}\s+{{ cluster_name }}' /etc/hosts
 
+  - name: Check that DNS, HTTP and HTTPS is not enabled on firewall
+    command: firewall-cmd --zone=public --list-services | grep -E 'dns|http|https'
+    register: grep
+    failed_when: grep.rc != 0
+
   - name: Check that first node is booted
     shell: |
       set -o pipefail
