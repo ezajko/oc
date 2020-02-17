@@ -58,6 +58,8 @@
       set -o pipefail
       nmcli c show | grep 'Wired connection'
     changed_when: false
+    register: grep
+    failed_when: grep.rc == 0
 
   - name: Test slurm
     when: queue_system == "slurm"
