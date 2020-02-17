@@ -3,7 +3,6 @@
     name: ohpc-ganglia
     state: present
   notify:
-    - enable http and https in firewall
     - restart httpd
 
 - when: clean is defined
