@@ -13,7 +13,7 @@ ohpc_version: '{{ ohpc_major_version }}.{{ ohpc_minor_version }}'
 opencattus_path: /opt/opencattus
 
 # Yum stuff
-mirror_blacklist:
+mirrors_blacklist:
   - http://mirror.upb.edu.co/
 
 # paths
