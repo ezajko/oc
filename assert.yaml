@@ -53,14 +53,6 @@
     changed_when: false
     check_mode: yes
 
-  - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
-    shell: |
-      set -o pipefail
-      nmcli c show | grep 'Wired connection'
-    changed_when: false
-    register: grep
-    failed_when: grep.rc == 0
-
   - name: Test slurm
     when: queue_system == "slurm"
     command: sinfo
