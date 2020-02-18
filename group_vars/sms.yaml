@@ -12,6 +12,10 @@ ohpc_version: '{{ ohpc_major_version }}.{{ ohpc_minor_version }}'
 # OpenCATTUS variables
 opencattus_path: /opt/opencattus
 
+# Yum stuff
+mirror_blacklist:
+  - http://mirror.upb.edu.co/
+
 # paths
 iso_path: /root/
 
@@ -145,7 +149,6 @@ mysql_expire_logs_days: "10"
 # mysql_replication_role: ''
 # mysql_replication_master: ''
 # mysql_replication_user: {}
-
 
 # Package exclusions, VXCAT-102
 package_exclusions:

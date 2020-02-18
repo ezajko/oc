@@ -1,0 +1,4 @@
+- name: Remove yum problematic mirrors
+  lineinfile:
+    path: /etc/yum/pluginconf.d/fastestmirror.conf
+    line: "exclude = {{ mirrors_blacklist | join(',') }}"
