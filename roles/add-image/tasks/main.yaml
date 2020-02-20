@@ -38,7 +38,7 @@
 
 - name: Create keys
   shell: |
-    for t in dsa ecdsa ed25519 rsa; do ssh-keygen -t $t -f {{ opencattus_path }}/xcat/ssh_host_${t}_key -N '' <<< y; done
+    for t in {{ ssh_key_types }}; do ssh-keygen -t $t -f {{ opencattus_path }}/xcat/ssh_host_${t}_key -N '' <<< y; done
   args:
     creates: '{{ opencattus_path }}/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
 
