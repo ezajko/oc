@@ -1,6 +1,6 @@
 ---
 - hosts: sms
-  gather_facts: yes
+  gather_facts: no
   vars:
     services:
       - chronyd
@@ -10,11 +10,7 @@
     directories:
       - /tftpboot/xcat/xnba/nodes
   pre_tasks:
-    - name: Get package facts
-      package_facts:
-        manager: auto
   tasks:
-
   - name: Get trusted interfaces
     shell: |
       set -o pipefail
@@ -96,6 +92,28 @@
       md5sum {{ opencattus_path }}/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
     loop: "{{ ssh_key_types }}"
 
+  - block:
+    - name: Load nodes variables
+      include_vars:
+        file: nodes.yaml
+
+    # Creates a list of pairs [[nodename, keytype], [n,k], ...]
+    - name: Create list of (node x keys)
+      set_fact:
+        nodes_keys: "{{ nodes | length | nodes_names | product(ssh_key_types) | list }}"
+
+    - name: Check that filesystem and FreeIPA keys are the same
+      args:
+        executable: /bin/bash
+      loop: "{{ nodes_keys }}"
+      register: wc
+      failed_when: wc.rc != 0 or wc.stdout != "1"
+      shell: |
+        set -o pipefail
+        cat <(ssh-keygen -lf {{ opencattus_path }}/xcat/ssh_host_{{ item[1] }}_key.pub | cut -f2 -d' ') \
+            <(ipa host-show {{ item[0] }} --raw | grep {{ item[1] }} | cut -f4 -d' ') | \
+            sort -u | wc -l
+    - meta: end_play
   # This check was merged but we didn't added
   # the hostname to /etc/hosts so it's failing
   # I'm not sure that adding this to /etc/hosts
