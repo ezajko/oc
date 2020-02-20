@@ -118,6 +118,9 @@
   lineinfile:
     path: '{{ pkglist }}'
     line: 'zabbix-agent'
+  tags:
+    - pkglist
+  notify: xcat genimage
 
 
 - name: Add Zabbix repository to the image

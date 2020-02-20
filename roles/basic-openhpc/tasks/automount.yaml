@@ -9,6 +9,8 @@
     ipa automountkey-add compute auto.master --key=/home --info=auto.home
     ipa automountkey-add compute auto.master --key=/opt/ohpc/pub --info=auto.ohpc
     ipa automountlocation-tofiles compute
+  tags:
+    - automount
 
 - name: Create the automount script file to be run at each compute note boot process
   copy:
@@ -18,8 +20,14 @@
       touch /var/lib/ipa-client/sysrestore/.workaround # workaround on ipa-client-automount bug
       ipa-client-automount --location=compute --unattended
     mode: '0755'
+  tags:
+    - postscripts
+  notify: xcat genimage
 
 - name: Add the auto mount script to xCAT defaults on compute nodes
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postscripts=versatushpc/freeipa-automount-compute
+  tags:
+    - postscripts
+  notify: xcat genimage

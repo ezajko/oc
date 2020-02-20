@@ -1,2 +1,2 @@
 ---
-# handlers file for infiniband
+- import_tasks: ../../xcat/handlers/main.yaml

@@ -13,6 +13,7 @@
     index_var: i
     loop_var: node
   shell: |
+    set -o pipefail
     source /etc/profile.d/xcat.sh
     mkdef -f -t node \
       {{ i | node_name }} \
@@ -29,10 +30,25 @@
       kinit admin <<< "{{ ipadm_password }}"
       ipa host-add  --ip-address={{ i | node_ip }} {{ i | node_name }}.{{ domain_name }}
       ipa host-add-managedby --hosts={{ fqdn }} {{ i | node_name }}.{{ domain_name }}
-      ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ i | node_name }}.{{ domain_name }}
       makehosts {{ i | node_name }}
       makedhcp {{ i | node_name }}
       ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ i | node_name }}-krb5.keytab
+  tags:
+    - 'node-create'
+
+- name: Add host key to node
+  shell: |
+    set -o pipefail
+    ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ i | node_name }}.{{ domain_name }}
+  loop: '{{ nodes }}'
+  loop_control:
+    index_var: i
+    loop_var: node
+  register: ipahostmod
+  failed_when: ipahostmod.rc != 0 and ipahostmod.stderr is not search("no modifications to be performed")
+  changed_when: ipahostmod.rc == 0 or ipahostmod.stderr is not search("no modifications to be performed")
+  tags:
+    - 'node-update-key-ipa'
 
 - name: Configure Infiniband
   when: ib_stack != "none"

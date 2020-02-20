@@ -5,3 +5,7 @@
   loop:
     - "@Infiniband Support"
     - infinipath-psm
+  tags:
+    - pkglist
+  notify: xcat genimage
+

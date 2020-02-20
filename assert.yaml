@@ -107,13 +107,13 @@
         executable: /bin/bash
       loop: "{{ nodes_keys }}"
       register: wc
-      failed_when: wc.rc != 0 or wc.stdout != "1"
+      failed_when: 'wc.rc != 0 or wc.stdout != "1" or ((wc.stderr|lower) is search("error"))'
+      changed_when: wc.rc == 0 and wc.stdout != "1"
       shell: |
         set -o pipefail
         cat <(ssh-keygen -lf {{ opencattus_path }}/xcat/ssh_host_{{ item[1] }}_key.pub | cut -f2 -d' ') \
-            <(ipa host-show {{ item[0] }} --raw | grep {{ item[1] }} | cut -f4 -d' ') | \
+            <(ipa host-show {{ item[0] }} --raw | sed 's/ssh-dss/ssh-dsa/' | grep -w {{ item[1] }} | cut -f4 -d' ') | \
             sort -u | wc -l
-    - meta: end_play
   # This check was merged but we didn't added
   # the hostname to /etc/hosts so it's failing
   # I'm not sure that adding this to /etc/hosts
@@ -126,6 +126,13 @@
     changed_when: false
     shell: |
       grep -E '^{{ sms_ip }}\s+{{ fqdn }}\s+{{ cluster_name }}' /etc/hosts
+
+  - name: Check that image has postinstalls
+    shell: |
+      set -o pipefail
+      source /etc/profile.d/xcat.sh
+      lsdef -t osimage -o centos7.7-x86_64-netboot-compute -i postinstall | sed 1d | cut -f2 -d= | grep opencattus
+    changed_when: false
 
   - name: Check that first node is booted
     shell: |

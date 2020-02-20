@@ -149,6 +149,9 @@
     line: ohpc-slurm-client
     path: "{{ pkglist }}"
     state: present
+  tags:
+    - pkglist
+  notify: xcat genimage
 
 - name:  Create postinstall script
   copy:

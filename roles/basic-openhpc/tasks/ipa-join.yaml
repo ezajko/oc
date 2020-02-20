@@ -1,4 +1,7 @@
 - name: Create ipa-join postscript
+  tags:
+    - postscripts
+  notify: xcat genimage
   copy:
     dest: "{{ opencattus_path }}/xcat/postscripts/ipa-join"
     mode: "0755"
@@ -164,6 +167,9 @@
       systemctl restart sshd
 
 - name: Add ipa-join to image
+  tags:
+    - postscripts
+  notify: xcat genimage
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postscripts=versatushpc/ipa-join

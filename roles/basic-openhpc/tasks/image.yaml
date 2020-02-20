@@ -3,6 +3,9 @@
     state: present
     line: '{{ item }}'
     path: '{{ pkglist }}'
+  tags:
+    - pkglist
+  notify: xcat genimage
   loop:
     - '#NEW_INSTALL_LIST#'
     - ohpc-base-compute

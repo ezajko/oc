@@ -37,6 +37,9 @@
   lineinfile:
     line: ganglia-gmond-ohpc
     path: "{{ pkglist }}"
+  tags:
+    - pkglist
+  notify: xcat genimage
 
 - name: Fix rrd folder owner
   file:

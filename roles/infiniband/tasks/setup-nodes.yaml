@@ -25,3 +25,4 @@
     source /etc/profile.d/xcat.sh
     chdef -t network -o application mask={{ ib_network | ipaddr('netmask') }} net={{ ib_network }} mtu=2044
     chdef compute -p postbootscripts=confignics
+  notify: xcat genimage

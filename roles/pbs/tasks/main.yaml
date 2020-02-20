@@ -28,6 +28,9 @@
     - ohpc-base-compute
     - lmod-ohpc
     - pbspro-execution-ohpc
+  tags:
+    - pkglist
+  notify: xcat genimage
 
 - name: Leafname at pbs.conf
   lineinfile:

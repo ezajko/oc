@@ -5,6 +5,8 @@
   stat:
     path: '{{ iso_path }}{{ centos_iso }}'
   register: iso
+  tags:
+    - 'iso'
 
 - name: Download CentOS
   get_url:
@@ -14,6 +16,8 @@
   when: not iso.stat.exists
   async: 600
   poll: 10
+  tags:
+    - 'iso'
 
 - name: "Run copycds on {{ centos_iso }}"
   shell: |
@@ -24,12 +28,18 @@
   async: 1200
   poll: 0
   register: copycds
+  tags:
+    - 'iso'
 
 - name: Create VersatusHPC diretories
   file:
     state: directory
     mode: '0755'
     path: '{{ opencattus_path }}/{{ item }}'
+  tags:
+    - pkglist
+    - postinstall
+    - postscripts
   loop:
     - xcat
     - xcat/postscripts
@@ -38,9 +48,13 @@
 
 - name: Create keys
   shell: |
-    for t in {{ ssh_key_types }}; do ssh-keygen -t $t -f {{ opencattus_path }}/xcat/ssh_host_${t}_key -N '' <<< y; done
+    ssh-keygen -t {{ item }} -f {{ opencattus_path }}/xcat/ssh_host_{{ item }}_key -N '' <<< y
   args:
-    creates: '{{ opencattus_path }}/xcat/ssh_host_{dsa,ecdsa,ed25519,rsa}_key{,.pub}'
+    creates: '{{ opencattus_path }}/xcat/ssh_host_{{ item }}_key'
+  loop: '{{ ssh_key_types }}'
+  tags:
+    - postinstall
+    - ssh_keys
 
 - name: Fix ssh keys permissions
   file:
@@ -48,14 +62,23 @@
     group: ssh_keys
     mode: '0640'
   loop: "{{ ssh_key_types }}"
+  tags:
+    - postinstall
+    - ssh_keys
 
 - name: Create links
   file:
     state: link
     src: "{{ opencattus_path }}/xcat/postscripts"
     dest: /install/postscripts/versatushpc
+  tags:
+    - postscripts
+  notify: xcat genimage
 
 - name: Create add-cluster-key.sh postinstall
+  tags:
+    - postinstall
+  notify: xcat genimage
   copy:
     dest: "{{ opencattus_path }}/xcat/postinstall/add-cluster-key"
     mode: '0755'
@@ -72,6 +95,9 @@
       fi
 
 - name: Create create-ssh-key postinstall
+  tags:
+    - postinstall
+  notify: xcat genimage
   copy:
     dest: "{{ opencattus_path }}/xcat/postinstall/create-ssh-key"
     mode: '0755'
@@ -90,6 +116,9 @@
     block: |
       #NEW_INSTALL_LIST#
       freeipa-client
+  tags:
+    - pkglist
+  notify: xcat genimage
 
 - name: Wait genimage to finish
   async_status:
@@ -99,22 +128,41 @@
   poll: 30
   retries: 300
   delay: 30
+  tags:
+    - 'iso'
 
 - name: Add postinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/add-cluster-key
   notify: xcat genimage
+  tags:
+    - postinstall
+
+- name: Create a base image for debugging
+  shell: |
+    set -o pipefail
+    lsdef -t osimage -o {{ genimage_name }}  -z | sed 's/-compute:/-compute-base:/; s,rootimgdir=.*$,&-base,; s@postinstall=.*@postinstall=postinstall=/opt/xcat/share/xcat/netboot/centos/compute.centos7.postinstall,/opt/opencattus/xcat/postinstall/add-cluster-key,/opt/opencattus/xcat/postinstall/create-ssh-key@;' | chdef -z
+  tags: 
+    - osimage
+  register: chdef
+  changed_when: chdef.rc == 0 and chdef.stdout is search("New object definitions")
+  notify: xcat genimage
+
 
 - name: Add compute.pkglist to the image
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkglist={{ pkglist }}
+  notify: xcat genimage
+  tags:
+    - genimage
 
 - name: Add repositorioes to the image
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item }}
+  notify: xcat genimage
   loop:
     # - http://vault.centos.org/7.6.1810/os/x86_64/
     # - http://vault.centos.org/7.6.1810/updates/x86_64/
@@ -126,12 +174,16 @@
     - http://download.fedoraproject.org/pub/epel/{{ el_major_version }}/x86_64
     - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/CentOS_{{ el_major_version }}
     - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/updates/CentOS_{{ el_major_version }}
+  tags:
+    - postinstall
 
 - name: Add postinstall for Create keys
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/create-ssh-key
   notify: xcat genimage
+  tags:
+    - postinstall
 
 - name: Configure Infiniband
   when: ib_stack != "none"
