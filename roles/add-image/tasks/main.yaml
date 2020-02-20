@@ -70,7 +70,7 @@
   file:
     state: link
     src: "{{ opencattus_path }}/xcat/postscripts"
-    dest: /install/postscripts/versatushpc
+    dest: /install/postscripts/opencattus
   tags:
     - postscripts
   notify: xcat genimage
@@ -142,8 +142,29 @@
 - name: Create a base image for debugging
   shell: |
     set -o pipefail
-    lsdef -t osimage -o {{ genimage_name }}  -z | sed 's/-compute:/-compute-base:/; s,rootimgdir=.*$,&-base,; s@postinstall=.*@postinstall=postinstall=/opt/xcat/share/xcat/netboot/centos/compute.centos7.postinstall,/opt/opencattus/xcat/postinstall/add-cluster-key,/opt/opencattus/xcat/postinstall/create-ssh-key@;' | chdef -z
-  tags: 
+    source /etc/profile.d/xcat.sh
+    chdef -z <<EOF
+    # <xCAT data object stanza file>
+
+    {{ genimage_name }}-base:
+        objtype=osimage
+        exlist=/opt/xcat/share/xcat/netboot/centos/compute.centos{{ el_major_version }}.exlist
+        imagetype=linux
+        osarch=x86_64
+        osdistroname=centos{{ el_version }}-x86_64
+        osname=Linux
+        osvers=centos{{ el_version }}
+        otherpkgdir=/install/post/otherpkgs/centos{{ el_version }}/x86_64
+        permission=755
+        pkgdir=/install/centos{{ el_version }}/x86_64
+        postscripts=
+        postinstall=/opt/xcat/share/xcat/netboot/centos/compute.centos{{ el_version }}.postinstall,/opt/opencattus/xcat/postinstall/add-cluster-key,/opt/opencattus/xcat/postinstall/create-ssh-key
+        profile=compute
+        provmethod=netboot
+        rootimgdir=/install/netboot/centos{{ el_version }}/x86_64/compute-base
+        synclists=/opt/opencattus/xcat/compute.synclist
+    EOF
+  tags:
     - osimage
   register: chdef
   changed_when: chdef.rc == 0 and chdef.stdout is search("New object definitions")
