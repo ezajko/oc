@@ -50,9 +50,9 @@ def nodes_names(nodes_num, nodes_prefix=None, nodes_separator=None, nodes_paddin
 @FilterModule.filter
 def node_name(i):
     extra_vars_ = extra_vars()
-    nodes_prefix = extra_vars_["nodes_prefix"]
-    nodes_padding = extra_vars_["nodes_padding"]
-    nodes_separator = extra_vars_["nodes_separator"]
+    nodes_prefix = extra_vars_.get("nodes_prefix", "node")
+    nodes_padding = extra_vars_.get("nodes_padding", 3)
+    nodes_separator = extra_vars_.get("nodes_separator", "")
     return "{}{}{:0{prec}}".format(
         nodes_prefix, nodes_separator, i + 1, prec=nodes_padding
     )
