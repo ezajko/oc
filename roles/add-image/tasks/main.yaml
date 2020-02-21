@@ -180,6 +180,7 @@
     chdef -t osimage -o {{ genimage_name }} -p pkglist={{ pkglist }}
   notify: xcat genimage
   tags:
+    - pkglist
     - genimage
 
 - name: Add repositories to the image

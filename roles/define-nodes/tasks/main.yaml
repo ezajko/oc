@@ -103,6 +103,8 @@
     - "\tEnableSSHKeysign yes"
 
 - name: Add hostbased-auth postscript
+  tags:
+    - postinstall
   copy:
     dest: "{{ opencattus_path }}/xcat/postinstall/hostbased-auth"
     mode: '0755'
@@ -141,6 +143,8 @@
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/hostbased-auth
   notify: xcat genimage
+  tags:
+    - postinstall
 
 - name: Get package facts
   package_facts: manager=auto

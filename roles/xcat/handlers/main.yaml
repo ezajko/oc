@@ -7,3 +7,4 @@
   shell: |
     source /etc/profile.d/xcat.sh
     genimage {{ genimage_name }} && packimage {{ genimage_name }}
+  when: skip_genimage | default(false) == false
