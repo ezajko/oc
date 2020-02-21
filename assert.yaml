@@ -194,5 +194,5 @@
   - name: Check that automount is working
     shell: |
       set -o pipefail
-      ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
+      ssh {{ 0 | node_name }} -- "mount | grep {{ fqdn }}:/opt/ohpc/pub"
     changed_when: false
