@@ -107,8 +107,9 @@
     dest: "{{ opencattus_path }}/xcat/postinstall/hostbased-auth"
     mode: '0755'
     content: |
-      #!/bin/sh -x
+      #!/bin/sh
 
+      echo "=======> Post install $0 started"
       # Configure Image Clientside
       grep -E 'EnableSSHKeysign yes'        $IMG_ROOTIMGDIR/etc/ssh/ssh_config || echo -e "\tEnableSSHKeysign yes"        >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
       grep -E 'HostbasedAuthentication yes' $IMG_ROOTIMGDIR/etc/ssh/ssh_config || echo -e "\tHostbasedAuthentication yes" >> $IMG_ROOTIMGDIR/etc/ssh/ssh_config
@@ -119,9 +120,7 @@
       @compute
       EOF2
 
-      cat $IMG_ROOTIMGDIR/etc/ssh/sshd_config
       sed -e 's/^#HostbasedAuthentication no/HostbasedAuthentication yes/' -i~ $IMG_ROOTIMGDIR/etc/ssh/sshd_config
-      cat $IMG_ROOTIMGDIR/etc/ssh/sshd_config
 
       # Create the known_hosts file with the keys:
       export DSA_KEY=`cat $IMG_ROOTIMGDIR/etc/ssh/ssh_host_dsa_key.pub | cut -f 2 -d " "`

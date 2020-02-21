@@ -42,6 +42,7 @@
     dest: "{{ opencattus_path }}/xcat/postinstall/pbs"
     mode: '0755'
     content: |
+      echo "=======> Post install $0 started"
       perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER=`hostname -f`/" $IMG_ROOTIMGDIR/etc/pbs.conf
       perl -pi -e "s/\$clienthost \S+.*$/\$clienthost `hostname -f`/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
       sed -i -e "/\$usecp `hostname -f`/d"  $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config

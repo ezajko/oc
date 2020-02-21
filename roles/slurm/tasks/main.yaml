@@ -158,6 +158,7 @@
     dest: "{{ opencattus_path }}/xcat/postinstall/slurm"
     mode: "0755"
     content: |
+      echo "=======> Post install $0 started"
       if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
           cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
           sed -e "/\[Unit\]/a\StartLimitBurst=5\nStartLimitIntervalSec=3" \

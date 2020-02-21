@@ -18,6 +18,7 @@
     mode: '0755'
     content: |
       #!/bin/sh
+      echo "=======> Post install $0 started"
       sed -i s/0.centos.pool.ntp.org/{{ fqdn }}/ $IMG_ROOTIMGDIR/etc/chrony.conf
       sed -i /centos.pool/d $IMG_ROOTIMGDIR/etc/chrony.conf
 

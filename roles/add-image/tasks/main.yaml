@@ -84,6 +84,9 @@
     mode: '0755'
     content: |
       #!/bin/bash
+
+      echo "=======> Post install $0 started"
+
       pubkey=$(cat ~/.ssh/id_ed25519.pub)
       authorized_keys="$IMG_ROOTIMGDIR/root/.ssh/authorized_keys"
       if [ ! -f $authorized_keys ]; then
@@ -102,8 +105,9 @@
     dest: "{{ opencattus_path }}/xcat/postinstall/create-ssh-key"
     mode: '0755'
     content: |
-      #!/bin/bash -xe
+      #!/bin/bash -eu
       set -o pipefail
+      echo "=======> Post install $0 started"
       \cp -vf {{ opencattus_path }}/xcat/ssh_host_* $IMG_ROOTIMGDIR/etc/ssh/
       SSH_GID=`chroot ${IMG_ROOTIMGDIR} getent group ssh_keys | cut -f3 -d:`
       chown 0:$SSH_GID ${IMG_ROOTIMGDIR}/etc/ssh/ssh_host_*_key

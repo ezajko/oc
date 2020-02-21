@@ -52,7 +52,8 @@
     dest: "{{ opencattus_path }}/xcat/postinstall/ganglia"
     mode: '0755'
     content: |
-      #!/bin/bash -x
+      #!/bin/bash
+      echo "=======> Post install $0 started"
       chroot $IMG_ROOTIMGDIR systemctl enable gmond
       cp /opt/ohpc/pub/examples/ganglia/gmond.conf $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf
       sed -e "s/<sms>/$(hostname -f)/" -i $IMG_ROOTIMGDIR/etc/ganglia/gmond.conf

@@ -135,6 +135,7 @@
     mode: '0755'
     content: |
       #!/bin/bash
+      echo "=======> Post install $0 started"
       chroot ${IMG_ROOTIMGDIR} systemctl enable zabbix-agent
 
       cat << EOF > ${IMG_ROOTIMGDIR}/etc/zabbix/zabbix_agentd.conf
