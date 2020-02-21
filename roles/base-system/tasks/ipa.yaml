@@ -45,5 +45,5 @@
 - name: Remove dangling IPs from DNS host
   shell: |
     ipa dnsrecord-remove {{ domain_name }} {{ cluster_name }} --a-record {{ item }}
-  loop: "{{ dnsrecords.stdout.split(',') | reject('equalto', sms_ip) | list }}"
+  loop: "{{ dnsrecords.stdout.split(',') | reject('eq', sms_ip) | list }}"
   when: count.changed
