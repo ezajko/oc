@@ -182,7 +182,7 @@
   tags:
     - genimage
 
-- name: Add repositorioes to the image
+- name: Add repositories to the image
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item }}
