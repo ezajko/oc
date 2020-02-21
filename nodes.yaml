@@ -1,6 +1,6 @@
 ---
 nodes:
-  - mac: '56:6f:f0:b3:00:0f'
+  - mac: '56:6f:90:d5:00:45'
     ipmi_user: ADMIN
     ipmi_password: admin
     slurm:
