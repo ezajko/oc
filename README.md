@@ -125,3 +125,193 @@ git submodule update
 |ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
 |ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
 |ib_network_ip_start|Infiniband network first node IP address|||
+|name|prompt|default|choices|help|
+|---|---|---|---|---|
+|cluster_name|Hostname?|headnode||
+|domain_name|Domain name?|cluster.example.com||
+|ipaadmin_password|FreeIPA admin password|||
+|ipadm_password|FreeIPA Directory Manager password|||FreeIPA Directory Manager password<br/><br/>It uses the same password as admin password entered before. This is used<br/>for authenticating to LDAP.<br/>
+|nodes_prefix|Node prefix?|n||
+|nodes_separator|Node name separtor (optional)|||
+|nodes_padding|Node name padding?|2||
+|sms_eth_external|External interface?|eth0||
+|sms_eth_internal|Internal interface?|eth1||
+|sms_network|Management network?|172.26.0.0/16||Management network is the primary network. Is the one by<br/>which nodes boot and where services like DHCP, DNS, TFTP<br/>talk.<br/>
+|sms_ip|Head node management network internal IP?|||
+|sms_network_ip_start|Management network first node IP address|||This is the Management Network first node IP address. Remaning nodes<br/>will be addressed by subsequent address.<br/><br/>Expects an IP in the form 10.1.0.1<br/>
+|xcat_dhcp_dynamicrange|xCAT DHCP Dynamic range?|||Dynamic range used for xCAT during node discovery.<br/><br/>Expects a IP range like 1.1.1.1-1.1.1.10<br/>
+|service_network_enabled|Configure service network?|yes|yes, no|Network used for BMC/IPMI services
+|service_network|Enter the service network|172.25.0.0/16||This is Service Network. Is the network used for BMC services and alike. It<br/>expects to receive a CIDR notation address like 10.1.0.0/16. The network address<br/>for the nodes are inferred from this network, starting from 10.1.0.2 up to<br/>as many as nodes are defined on cluster.csv<br/>
+|service_network_ip_start|Service network first node IP address|||This is BMC address of the first node. The reimaing nodes<br/>will be named with subsequent IP address.<br/><br/>Expects an IP address like 10.2.0.1<br/>
+|ipmi_user|What is the default IPMI username|ADMIN||
+|ipmi_password|IPMI default password|||This can be overriden by node basis. The password<br/>is setup for IPMI connection together with IPMI username<br/>asked before<br/>
+|queue_system|Choose a queue system|none|none, slurm, pbs|
+|pbs_default_place|PBS default place|shared|shared, scatter|PBS default.place option<br/>
+|slurm_partition_name|Slurm default partition name|batch||The Slurm partition name<br/>
+|postfix_install|Install postfix?|yes|yes, no|Enable installation and configuration of postfix<br/>
+|postfix_profile|Choose a profile for postfix installation?|local|relay, local, sasl|Select the profile. There are 3 options<br/>  local) All messages are delivered locally only<br/>  relay) Messages are relayed to another MTA<br/>  sasl)  Messages are relayed to another MTA, but it<br/>         uses user/password to connect to it<br/>
+|postfix_relay_server|Type the MTA to relay to?|||The relay address, ex: relay-smtp.example.com<br/>
+|postfix_mynetworks_more|Custom trusted networks? |||Comma separated list, localhost and cluster networks are already added by default<br/>Ex: 192.168.123.0/24, 10.0.0.0/8<br/>
+|postfix_relay_server|Relay server?|||
+|postfix_relay_port|Relay port?|25||
+|postfix_sasl_user|SMTP user?|||
+|postfix_sasl_password|SMTP password?|||
+|postfix_sasl_server|SMTP server?|||
+|postfix_sasl_port|SMTP port?|25||
+|certificate_install|Create certificate|yes|yes, no|
+|ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
+|ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
+|ib_network_ip_start|Infiniband network first node IP address|||
+|timezone|Select timezone|America/Sao_Paulo||
+|name|prompt|default|choices|help|
+|---|---|---|---|---|
+|cluster_name|Hostname?|headnode||
+|domain_name|Domain name?|cluster.example.com||
+|ipaadmin_password|FreeIPA admin password|||
+|ipadm_password|FreeIPA Directory Manager password|||FreeIPA Directory Manager password<br/><br/>It uses the same password as admin password entered before. This is used<br/>for authenticating to LDAP.<br/>
+|nodes_prefix|Node prefix?|n||
+|nodes_separator|Node name separtor (optional)|||
+|nodes_padding|Node name padding?|2||
+|sms_eth_external|External interface?|eth0||
+|sms_eth_internal|Internal interface?|eth1||
+|sms_network|Management network?|172.26.0.0/16||Management network is the primary network. Is the one by<br/>which nodes boot and where services like DHCP, DNS, TFTP<br/>talk.<br/>
+|sms_ip|Head node management network internal IP?|||
+|sms_network_ip_start|Management network first node IP address|||This is the Management Network first node IP address. Remaning nodes<br/>will be addressed by subsequent address.<br/><br/>Expects an IP in the form 10.1.0.1<br/>
+|xcat_dhcp_dynamicrange|xCAT DHCP Dynamic range?|||Dynamic range used for xCAT during node discovery.<br/><br/>Expects a IP range like 1.1.1.1-1.1.1.10<br/>
+|service_network_enabled|Configure service network?|yes|yes, no|Network used for BMC/IPMI services
+|service_network|Enter the service network|172.25.0.0/16||This is Service Network. Is the network used for BMC services and alike. It<br/>expects to receive a CIDR notation address like 10.1.0.0/16. The network address<br/>for the nodes are inferred from this network, starting from 10.1.0.2 up to<br/>as many as nodes are defined on cluster.csv<br/>
+|service_network_ip_start|Service network first node IP address|||This is BMC address of the first node. The reimaing nodes<br/>will be named with subsequent IP address.<br/><br/>Expects an IP address like 10.2.0.1<br/>
+|ipmi_user|What is the default IPMI username|ADMIN||
+|ipmi_password|IPMI default password|||This can be overriden by node basis. The password<br/>is setup for IPMI connection together with IPMI username<br/>asked before<br/>
+|queue_system|Choose a queue system|none|none, slurm, pbs|
+|pbs_default_place|PBS default place|shared|shared, scatter|PBS default.place option<br/>
+|slurm_partition_name|Slurm default partition name|batch||The Slurm partition name<br/>
+|postfix_install|Install postfix?|yes|yes, no|Enable installation and configuration of postfix<br/>
+|postfix_profile|Choose a profile for postfix installation?|local|relay, local, sasl|Select the profile. There are 3 options<br/>  local) All messages are delivered locally only<br/>  relay) Messages are relayed to another MTA<br/>  sasl)  Messages are relayed to another MTA, but it<br/>         uses user/password to connect to it<br/>
+|postfix_relay_server|Type the MTA to relay to?|||The relay address, ex: relay-smtp.example.com<br/>
+|postfix_mynetworks_more|Custom trusted networks? |||Comma separated list, localhost and cluster networks are already added by default<br/>Ex: 192.168.123.0/24, 10.0.0.0/8<br/>
+|postfix_relay_server|Relay server?|||
+|postfix_relay_port|Relay port?|25||
+|postfix_sasl_user|SMTP user?|||
+|postfix_sasl_password|SMTP password?|||
+|postfix_sasl_server|SMTP server?|||
+|postfix_sasl_port|SMTP port?|25||
+|certificate_install|Create certificate|yes|yes, no|
+|ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
+|ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
+|ib_network_ip_start|Infiniband network first node IP address|||
+|timezone|Select timezone|America/Sao_Paulo||
+|name|prompt|default|choices|help|
+|---|---|---|---|---|
+|cluster_name|Hostname?|headnode||
+|domain_name|Domain name?|cluster.example.com||
+|ipaadmin_password|FreeIPA admin password|||
+|ipadm_password|FreeIPA Directory Manager password|||FreeIPA Directory Manager password<br/><br/>It uses the same password as admin password entered before. This is used<br/>for authenticating to LDAP.<br/>
+|nodes_prefix|Node prefix?|n||
+|nodes_separator|Node name separtor (optional)|||
+|nodes_padding|Node name padding?|2||
+|sms_eth_external|External interface?|eth0||
+|sms_eth_internal|Internal interface?|eth1||
+|sms_network|Management network?|172.26.0.0/16||Management network is the primary network. Is the one by<br/>which nodes boot and where services like DHCP, DNS, TFTP<br/>talk.<br/>
+|sms_ip|Head node management network internal IP?|||
+|sms_network_ip_start|Management network first node IP address|||This is the Management Network first node IP address. Remaning nodes<br/>will be addressed by subsequent address.<br/><br/>Expects an IP in the form 10.1.0.1<br/>
+|xcat_dhcp_dynamicrange|xCAT DHCP Dynamic range?|||Dynamic range used for xCAT during node discovery.<br/><br/>Expects a IP range like 1.1.1.1-1.1.1.10<br/>
+|service_network_enabled|Configure service network?|yes|yes, no|Network used for BMC/IPMI services
+|service_network|Enter the service network|172.25.0.0/16||This is Service Network. Is the network used for BMC services and alike. It<br/>expects to receive a CIDR notation address like 10.1.0.0/16. The network address<br/>for the nodes are inferred from this network, starting from 10.1.0.2 up to<br/>as many as nodes are defined on cluster.csv<br/>
+|service_network_ip_start|Service network first node IP address|||This is BMC address of the first node. The reimaing nodes<br/>will be named with subsequent IP address.<br/><br/>Expects an IP address like 10.2.0.1<br/>
+|ipmi_user|What is the default IPMI username|ADMIN||
+|ipmi_password|IPMI default password|||This can be overriden by node basis. The password<br/>is setup for IPMI connection together with IPMI username<br/>asked before<br/>
+|queue_system|Choose a queue system|none|none, slurm, pbs|
+|pbs_default_place|PBS default place|shared|shared, scatter|PBS default.place option<br/>
+|slurm_partition_name|Slurm default partition name|batch||The Slurm partition name<br/>
+|postfix_install|Install postfix?|yes|yes, no|Enable installation and configuration of postfix<br/>
+|postfix_profile|Choose a profile for postfix installation?|local|relay, local, sasl|Select the profile. There are 3 options<br/>  local) All messages are delivered locally only<br/>  relay) Messages are relayed to another MTA<br/>  sasl)  Messages are relayed to another MTA, but it<br/>         uses user/password to connect to it<br/>
+|postfix_relay_server|Type the MTA to relay to?|||The relay address, ex: relay-smtp.example.com<br/>
+|postfix_mynetworks_more|Custom trusted networks? |||Comma separated list, localhost and cluster networks are already added by default<br/>Ex: 192.168.123.0/24, 10.0.0.0/8<br/>
+|postfix_relay_server|Relay server?|||
+|postfix_relay_port|Relay port?|25||
+|postfix_sasl_user|SMTP user?|||
+|postfix_sasl_password|SMTP password?|||
+|postfix_sasl_server|SMTP server?|||
+|postfix_sasl_port|SMTP port?|25||
+|certificate_install|Create certificate|yes|yes, no|
+|ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
+|ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
+|ib_network_ip_start|Infiniband network first node IP address|||
+|timezone|Select timezone|America/Sao_Paulo||
+|name|prompt|default|choices|help|
+|---|---|---|---|---|
+|cluster_name|Hostname?|headnode||
+|domain_name|Domain name?|cluster.example.com||
+|ipaadmin_password|FreeIPA admin password|||
+|ipadm_password|FreeIPA Directory Manager password|||FreeIPA Directory Manager password<br/><br/>It uses the same password as admin password entered before. This is used<br/>for authenticating to LDAP.<br/>
+|nodes_prefix|Node prefix?|n||
+|nodes_separator|Node name separtor (optional)|||
+|nodes_padding|Node name padding?|2||
+|sms_eth_external|External interface?|eth0||
+|sms_eth_internal|Internal interface?|eth1||
+|sms_network|Management network?|172.26.0.0/16||Management network is the primary network. Is the one by<br/>which nodes boot and where services like DHCP, DNS, TFTP<br/>talk.<br/>
+|sms_ip|Head node management network internal IP?|||
+|sms_network_ip_start|Management network first node IP address|||This is the Management Network first node IP address. Remaning nodes<br/>will be addressed by subsequent address.<br/><br/>Expects an IP in the form 10.1.0.1<br/>
+|xcat_dhcp_dynamicrange|xCAT DHCP Dynamic range?|||Dynamic range used for xCAT during node discovery.<br/><br/>Expects a IP range like 1.1.1.1-1.1.1.10<br/>
+|service_network_enabled|Configure service network?|yes|yes, no|Network used for BMC/IPMI services
+|service_network|Enter the service network|172.25.0.0/16||This is Service Network. Is the network used for BMC services and alike. It<br/>expects to receive a CIDR notation address like 10.1.0.0/16. The network address<br/>for the nodes are inferred from this network, starting from 10.1.0.2 up to<br/>as many as nodes are defined on cluster.csv<br/>
+|service_network_ip_start|Service network first node IP address|||This is BMC address of the first node. The reimaing nodes<br/>will be named with subsequent IP address.<br/><br/>Expects an IP address like 10.2.0.1<br/>
+|ipmi_user|What is the default IPMI username|ADMIN||
+|ipmi_password|IPMI default password|||This can be overriden by node basis. The password<br/>is setup for IPMI connection together with IPMI username<br/>asked before<br/>
+|queue_system|Choose a queue system|none|none, slurm, pbs|
+|pbs_default_place|PBS default place|shared|shared, scatter|PBS default.place option<br/>
+|slurm_partition_name|Slurm default partition name|batch||The Slurm partition name<br/>
+|postfix_install|Install postfix?|yes|yes, no|Enable installation and configuration of postfix<br/>
+|postfix_profile|Choose a profile for postfix installation?|local|relay, local, sasl|Select the profile. There are 3 options<br/>  local) All messages are delivered locally only<br/>  relay) Messages are relayed to another MTA<br/>  sasl)  Messages are relayed to another MTA, but it<br/>         uses user/password to connect to it<br/>
+|postfix_relay_server|Type the MTA to relay to?|||The relay address, ex: relay-smtp.example.com<br/>
+|postfix_mynetworks_more|Custom trusted networks? |||Comma separated list, localhost and cluster networks are already added by default<br/>Ex: 192.168.123.0/24, 10.0.0.0/8<br/>
+|postfix_relay_server|Relay server?|||
+|postfix_relay_port|Relay port?|25||
+|postfix_sasl_user|SMTP user?|||
+|postfix_sasl_password|SMTP password?|||
+|postfix_sasl_server|SMTP server?|||
+|postfix_sasl_port|SMTP port?|25||
+|certificate_install|Create certificate|yes|yes, no|
+|ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
+|ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
+|ib_network_ip_start|Infiniband network first node IP address|||
+|timezone|Select timezone|America/Sao_Paulo||
+|name|prompt|default|choices|help|
+|---|---|---|---|---|
+|cluster_name|Hostname?|headnode||
+|domain_name|Domain name?|cluster.example.com||
+|ipaadmin_password|FreeIPA admin password|||
+|ipadm_password|FreeIPA Directory Manager password|||FreeIPA Directory Manager password<br/><br/>It uses the same password as admin password entered before. This is used<br/>for authenticating to LDAP.<br/>
+|nodes_prefix|Node prefix?|n||
+|nodes_separator|Node name separtor (optional)|||
+|nodes_padding|Node name padding?|2||
+|sms_eth_external|External interface?|eth0||
+|sms_eth_internal|Internal interface?|eth1||
+|sms_network|Management network?|172.26.0.0/16||Management network is the primary network. Is the one by<br/>which nodes boot and where services like DHCP, DNS, TFTP<br/>talk.<br/>
+|sms_ip|Head node management network internal IP?|||
+|sms_network_ip_start|Management network first node IP address|||This is the Management Network first node IP address. Remaning nodes<br/>will be addressed by subsequent address.<br/><br/>Expects an IP in the form 10.1.0.1<br/>
+|xcat_dhcp_dynamicrange|xCAT DHCP Dynamic range?|||Dynamic range used for xCAT during node discovery.<br/><br/>Expects a IP range like 1.1.1.1-1.1.1.10<br/>
+|service_network_enabled|Configure service network?|yes|yes, no|Network used for BMC/IPMI services
+|service_network|Enter the service network|172.25.0.0/16||This is Service Network. Is the network used for BMC services and alike. It<br/>expects to receive a CIDR notation address like 10.1.0.0/16. The network address<br/>for the nodes are inferred from this network, starting from 10.1.0.2 up to<br/>as many as nodes are defined on cluster.csv<br/>
+|service_network_ip_start|Service network first node IP address|||This is BMC address of the first node. The reimaing nodes<br/>will be named with subsequent IP address.<br/><br/>Expects an IP address like 10.2.0.1<br/>
+|ipmi_user|What is the default IPMI username|ADMIN||
+|ipmi_password|IPMI default password|||This can be overriden by node basis. The password<br/>is setup for IPMI connection together with IPMI username<br/>asked before<br/>
+|queue_system|Choose a queue system|none|none, slurm, pbs|
+|pbs_default_place|PBS default place|shared|shared, scatter|PBS default.place option<br/>
+|slurm_partition_name|Slurm default partition name|batch||The Slurm partition name<br/>
+|postfix_install|Install postfix?|yes|yes, no|Enable installation and configuration of postfix<br/>
+|postfix_profile|Choose a profile for postfix installation?|local|relay, local, sasl|Select the profile. There are 3 options<br/>  local) All messages are delivered locally only<br/>  relay) Messages are relayed to another MTA<br/>  sasl)  Messages are relayed to another MTA, but it<br/>         uses user/password to connect to it<br/>
+|postfix_relay_server|Type the MTA to relay to?|||The relay address, ex: relay-smtp.example.com<br/>
+|postfix_mynetworks_more|Custom trusted networks? |||Comma separated list, localhost and cluster networks are already added by default<br/>Ex: 192.168.123.0/24, 10.0.0.0/8<br/>
+|postfix_relay_server|Relay server?|||
+|postfix_relay_port|Relay port?|25||
+|postfix_sasl_user|SMTP user?|||
+|postfix_sasl_password|SMTP password?|||
+|postfix_sasl_server|SMTP server?|||
+|postfix_sasl_port|SMTP port?|25||
+|certificate_install|Create certificate|yes|yes, no|
+|ib_stack|Infiniband stack|none|none, upstream, mellanox|none      => Do not install Infiniband at all<br/>upstream  => The main stream OFED stack, opensource and provided by default repos<br/>mellanox  => The Mellanox OFED stack<br/>
+|ib_network|Application network|172.27.0.0/16||This is the network used by applications to talk, is a high speed network.<br/><br/>Expcets a network address like 172.27.0.0/16<br/>
+|ib_network_ip_start|Infiniband network first node IP address|||
+|timezone|Select timezone|America/Sao_Paulo||

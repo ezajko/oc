@@ -158,7 +158,7 @@
         permission=755
         pkgdir=/install/centos{{ el_version }}/x86_64
         postscripts=
-        postinstall=/opt/xcat/share/xcat/netboot/centos/compute.centos{{ el_version }}.postinstall,/opt/opencattus/xcat/postinstall/add-cluster-key,/opt/opencattus/xcat/postinstall/create-ssh-key
+        postinstall=/opt/xcat/share/xcat/netboot/centos/compute.centos{{ el_major_version }}.postinstall,/opt/opencattus/xcat/postinstall/add-cluster-key,/opt/opencattus/xcat/postinstall/create-ssh-key
         profile=compute
         provmethod=netboot
         rootimgdir=/install/netboot/centos{{ el_version }}/x86_64/compute-base
