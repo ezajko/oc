@@ -6,15 +6,6 @@
   assert:
     that:
       - nodes is defined
-- name: FreeIPA Create node keytab
-  shell: |
-    ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ i | node_name }}-krb5.keytab
-  loop: '{{ nodes }}'
-  loop_control:
-    index_var: i
-    loop_var: node
-  tags:
-    - ipa-getkeytab
 
 - name: Define nodes
   loop: '{{ nodes }}'
@@ -42,6 +33,15 @@
       makehosts {{ i | node_name }}
       makedhcp {{ i | node_name }}
 
+- name: FreeIPA Create node keytab
+  shell: |
+    ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ i | node_name }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ i | node_name }}-krb5.keytab
+  loop: '{{ nodes }}'
+  loop_control:
+    index_var: i
+    loop_var: node
+  tags:
+    - ipa-getkeytab
 
 - name: Add host key to node
   shell: |
