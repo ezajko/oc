@@ -1,3 +1,6 @@
+- package_facts: manager=auto
+  when: ansible_package_facts is not defined
+
 - include_role:
     name: roles/freeipa/roles/ipaserver
   vars:
@@ -15,3 +18,32 @@
   fail:
     msg: "ipa dnszone-mod failed with error: {{ ipadnszonemode.stderr }}"
   when: ipadnszonemode.rc != 0 and ipadnszonemode.stderr is not search("no modifications to be performed")
+
+- name: Setup localhost as DNS
+  shell: |
+    nmcli c mod {{ sms_eth_internal }} ipv4.dns {{ sms_ip }} ipv4.dns-search {{ domain_name }}
+
+- name: Restart  NetworkManager to recreate /etc/resolv.conf
+  systemd: name=NetworkManager state=restarted
+
+- name: Verify that /etc/resolv.conf updated
+  shell: |
+    grep -E "nameserver\s+{{ sms_ip }}" /etc/resolv.conf
+  changed_when: false
+
+- name: Verify that hostname resolves to a single address
+  shell: |
+    nslookup {{ cluster_name }} | grep -v '#53' | grep -c Address
+  register: count
+  changed_when: count.rc == 0 and count.stdout != 1
+
+- name: Geting {{ cluster_name }} IP address
+  register: dnsrecords
+  shell: | 
+    ipa dnsrecord-show {{ domain_name }} {{ cluster_name }} --raw | awk '/arecord/ {print $2}' | tr -d ' '
+
+- name: Remove dangling IPs from DNS host
+  shell: |
+    ipa dnsrecord-remove {{ domain_name }} {{ cluster_name }} --a-record {{ item }}
+  loop: "{{ dnsrecords.stdout.split(',') | reject('equalto', sms_ip) | list }}"
+  when: count.changed

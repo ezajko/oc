@@ -131,7 +131,39 @@
     shell: |
       set -o pipefail
       source /etc/profile.d/xcat.sh
-      lsdef -t osimage -o centos7.7-x86_64-netboot-compute -i postinstall | sed 1d | cut -f2 -d= | grep opencattus
+      lsdef -t osimage -o {{ genimage_name }} -i postinstall | sed 1d | cut -f2 -d= | grep opencattus
+    changed_when: false
+
+  - name: Grab postscripts from image
+    shell: |
+      set -o pipefail
+      source /etc/profile.d/xcat.sh
+      lsdef -t osimage -o {{ genimage_name }} -i postscripts | awk -F= '/postscripts/ { print $2 }'
+    register: postscripts
+    failed_when: postscripts.rc != 0 or postscripts.stdout == ""
+
+  - name: Set postscripts variable
+    set_fact:
+      postscripts: "{{ postscripts.stdout.split(',') | list }}"
+
+  - name: Check postscripts
+    assert:
+      that:
+        - "'opencattus/ipa-join' in postscripts"
+        - "'opencattus/freeipa-automount-compute' in postscripts"
+
+  # We expect DNS to be point to the internal IP. And name
+  # resolution to be working. So, nslookup {{ fqdn }}
+  # should return {{ sms_ip }} in Server, and Address lines.
+  #
+  # It's also expected that the name resolves only to
+  # {{ sms_ip }} address.
+  - name: Check that DNS is working, also check server and address IPs in DNS response
+    shell: |
+      set -o pipefail
+      nslookup {{ fqdn }} | grep -v '#53' | awk '/Address/ { print $2 }; /Server/ { print $2 }'
+    register: nslookup
+    failed_when: nslookup.stdout_lines | unique | length != 1 or nslookup.stdout_lines | unique | list != [sms_ip]
     changed_when: false
 
   - name: Check that first node is booted

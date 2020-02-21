@@ -29,7 +29,7 @@
   poll: 0
   register: copycds
   tags:
-    - 'iso'
+    - 'genimage'
 
 - name: Create VersatusHPC diretories
   file:
@@ -129,7 +129,7 @@
   retries: 300
   delay: 30
   tags:
-    - 'iso'
+    - 'genimage'
 
 - name: Add postinstall to the image
   shell: |
@@ -169,7 +169,6 @@
   register: chdef
   changed_when: chdef.rc == 0 and chdef.stdout is search("New object definitions")
   notify: xcat genimage
-
 
 - name: Add compute.pkglist to the image
   shell: |
