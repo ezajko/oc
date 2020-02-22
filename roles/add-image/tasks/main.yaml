@@ -196,7 +196,7 @@
     - http://mirror.centos.org/centos/{{ el_major_version }}/updates/x86_64/
     - http://mirror.centos.org/centos/{{ el_major_version }}/extras/x86_64/
     - http://mirror.centos.org/centos/{{ el_major_version }}/centosplus/x86_64/
-    - http://mirror.globo.com/centos/epel/{{ el_major_version }}/x86_64
+    - http://download.fedoraproject.org/pub/epel/{{ el_major_version }}/x86_64
     - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/CentOS_{{ el_major_version }}
     - http://build.openhpc.community/OpenHPC:/{{ ohpc_version }}/updates/CentOS_{{ el_major_version }}
   tags:
