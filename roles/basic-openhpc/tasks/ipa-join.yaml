@@ -1,3 +1,10 @@
+- name: Add patch to the image
+  lineinfile:
+    path: '{{ pkglist }}'
+    line: 'patch'
+  tags:
+    - pkglist
+
 - name: Create ipa-join postscript
   tags:
     - postscripts
