@@ -5,7 +5,6 @@
     path: '{{ pkglist }}'
   tags:
     - pkglist
-  notify: xcat genimage
   loop:
     - '#NEW_INSTALL_LIST#'
     - ohpc-base-compute
@@ -26,5 +25,4 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/chrony-config
-  notify: xcat genimage
 

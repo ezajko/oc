@@ -1,7 +1,4 @@
 ---
-# handlers file for ganglia
-- import_tasks: ../../xcat/handlers/main.yaml
-
 - name: enable http and https in firewall
   firewalld:
     state: enabled

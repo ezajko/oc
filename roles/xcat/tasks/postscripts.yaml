@@ -7,4 +7,3 @@
     rm -rf postscripts.csv
   tags:
     - postscripts
-  notify: xcat genimage

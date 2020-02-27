@@ -142,7 +142,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/hostbased-auth
-  notify: xcat genimage
   tags:
     - postinstall
 
@@ -161,6 +160,17 @@
   yum:
     name: pigz
     state: present
+
+- name: Generate final image
+  shell: |
+    source /etc/profile.d/xcat.sh
+    genimage {{ genimage_name }}
+    packimage {{ genimage_name }}
+  register: genimage
+  failed_when: genimage.rc != 0 or (genimage.stderr | lower) is search("error")
+  retries: 3
+  poll: 300
+  async: 3600 
 
 - name: Run nodeset on new nodes
   shell: |

@@ -22,7 +22,6 @@
     mode: '0755'
   tags:
     - postscripts
-  notify: xcat genimage
 
 - name: Add the auto mount script to xCAT defaults on compute nodes
   shell: |
@@ -30,4 +29,3 @@
     chdef -t osimage -o {{ genimage_name }} -p postscripts=opencattus/freeipa-automount-compute
   tags:
     - postscripts
-  notify: xcat genimage

@@ -120,7 +120,6 @@
     line: 'zabbix-agent'
   tags:
     - pkglist
-  notify: xcat genimage
 
 
 - name: Add Zabbix repository to the image
@@ -150,7 +149,6 @@
   shell: |
     souce /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -o postinstall={{ opencattus_path }}/xcat/postinstall/zabbix-agent
-  notify: xcat genimage
 
 - name: Create SELinux policy
   copy:

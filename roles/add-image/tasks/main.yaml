@@ -14,8 +14,9 @@
     url: http://ftp.unicamp.br/pub/centos/{{ centos_version }}/isos/x86_64/{{ centos_iso }}
     dest: '{{ iso_path }}{{ centos_iso }}'
   when: not iso.stat.exists
-  async: 600
-  poll: 10
+  async: 6000
+  retry: 3
+  poll: 60
   tags:
     - 'iso'
 
@@ -73,12 +74,10 @@
     dest: /install/postscripts/opencattus
   tags:
     - postscripts
-  notify: xcat genimage
 
 - name: Create add-cluster-key.sh postinstall
   tags:
     - postinstall
-  notify: xcat genimage
   copy:
     dest: "{{ opencattus_path }}/xcat/postinstall/add-cluster-key"
     mode: '0755'
@@ -100,7 +99,6 @@
 - name: Create create-ssh-key postinstall
   tags:
     - postinstall
-  notify: xcat genimage
   copy:
     dest: "{{ opencattus_path }}/xcat/postinstall/create-ssh-key"
     mode: '0755'
@@ -122,7 +120,6 @@
       freeipa-client
   tags:
     - pkglist
-  notify: xcat genimage
 
 - name: Wait genimage to finish
   async_status:
@@ -139,7 +136,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/add-cluster-key
-  notify: xcat genimage
   tags:
     - postinstall
 
@@ -172,13 +168,11 @@
     - osimage
   register: chdef
   changed_when: chdef.rc == 0 and chdef.stdout is search("New object definitions")
-  notify: xcat genimage
 
 - name: Add compute.pkglist to the image
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkglist={{ pkglist }}
-  notify: xcat genimage
   tags:
     - pkglist
     - genimage
@@ -187,7 +181,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkgdir={{ item }}
-  notify: xcat genimage
   loop:
     # - http://vault.centos.org/7.6.1810/os/x86_64/
     # - http://vault.centos.org/7.6.1810/updates/x86_64/
@@ -206,7 +199,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/create-ssh-key
-  notify: xcat genimage
   tags:
     - postinstall
 
