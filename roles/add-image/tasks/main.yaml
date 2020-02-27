@@ -15,7 +15,7 @@
     dest: '{{ iso_path }}{{ centos_iso }}'
   when: not iso.stat.exists
   async: 6000
-  retry: 3
+  retries: 3
   poll: 60
   tags:
     - 'iso'
