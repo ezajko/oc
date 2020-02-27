@@ -7,7 +7,6 @@
   shell: |
     source /etc/profile.d/xcat.sh
     genimage {{ genimage_name }} && packimage {{ genimage_name }}
-  when: skip_genimage | default(false) is false
   async: 300000
   poll: 60
   retries: 3
