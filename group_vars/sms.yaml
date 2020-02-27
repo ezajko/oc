@@ -15,6 +15,7 @@ opencattus_path: /opt/opencattus
 # Yum stuff
 mirrors_blacklist:
   - http://mirror.upb.edu.co/
+  - http://mirror.nbtelecom.com.br/
 
 # paths
 iso_path: /root/
