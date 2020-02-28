@@ -273,3 +273,12 @@
   prompt: Select timezone
   default: "America/Sao_Paulo"
   private: no
+
+- name: versatushpc_access_enabled
+  prompt: Enable VersatusHPC access?
+  default: 'no'
+  choices: ['yes', 'no']
+  help: |
+    This will install VersatusHPC ssh keys in the system.
+    It will also add the VersatusHPC public IP to the
+    firewall public zone.
