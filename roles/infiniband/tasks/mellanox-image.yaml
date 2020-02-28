@@ -2,6 +2,9 @@
   shell: |
     source /etc/profile.d/xcat.sh
     chdef -t osimage -o {{ genimage_name }} -p pkgdir=http://linux.mellanox.com/public/repo/mlnx_ofed_dpdk_upstream_libs/latest/rhel{{ el_version }}/x86_64
+  tags:
+    - postinstall
+
 
 - name: Add packages to the image
   lineinfile:
@@ -11,3 +14,6 @@
   loop:
     - mlnx-ofed-dpdk-upstream-libs
     - infinipath-psm
+  tags:
+    - genimage
+

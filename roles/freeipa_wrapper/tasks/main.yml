@@ -3,12 +3,10 @@
   fail:
     msg: |
       FreeIPA is already installed, reinstalling is not supported, sorry.
-    when: "ipa-server" in ansible_facts.packages
+    when: '"ipa-server" in ansible_facts.packages'
 
 - include_role:
     name: ipaserver
   vars:
     state: present
-  when: 'ipa-server' not in ansible_facts.packages
-
-
+  when: '"ipa-server" not in ansible_facts.packages'

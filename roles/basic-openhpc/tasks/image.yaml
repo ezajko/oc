@@ -3,6 +3,8 @@
     state: present
     line: '{{ item }}'
     path: '{{ pkglist }}'
+  tags:
+    - pkglist
   loop:
     - '#NEW_INSTALL_LIST#'
     - ohpc-base-compute
@@ -11,14 +13,16 @@
 
 - name: Create postinstall script
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/chrony-config
+    dest: "{{ opencattus_path }}/xcat/postinstall/chrony-config"
     mode: '0755'
     content: |
       #!/bin/sh
+      echo "=======> Post install $0 started"
       sed -i s/0.centos.pool.ntp.org/{{ fqdn }}/ $IMG_ROOTIMGDIR/etc/chrony.conf
       sed -i /centos.pool/d $IMG_ROOTIMGDIR/etc/chrony.conf
 
 - name: Add postinstall to the image
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/chrony-config
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/chrony-config
+

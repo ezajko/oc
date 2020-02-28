@@ -1,6 +1,6 @@
 ---
 - hosts: sms
-  gather_facts: yes
+  gather_facts: no
   vars:
     services:
       - chronyd
@@ -10,11 +10,7 @@
     directories:
       - /tftpboot/xcat/xnba/nodes
   pre_tasks:
-    - name: Get package facts
-      package_facts:
-        manager: auto
   tasks:
-
   - name: Get trusted interfaces
     shell: |
       set -o pipefail
@@ -53,12 +49,6 @@
     changed_when: false
     check_mode: yes
 
-  - name: nmcli should not have Wired connection 1 (it is enp2s0 (the device name))
-    shell: |
-      set -o pipefail
-      nmcli c show | grep 'Wired connection'
-    changed_when: false
-
   - name: Test slurm
     when: queue_system == "slurm"
     command: sinfo
@@ -70,7 +60,7 @@
 
   - name: Check ssh keys permissions
     file:
-      path: "/opt/versatushpc/xcat/ssh_host_{{ item }}_key"
+      path: "{{ opencattus_path }}/xcat/ssh_host_{{ item }}_key"
       group: ssh_keys
       mode: '0640'
     loop: "{{ ssh_key_types }}"
@@ -99,13 +89,82 @@
     failed_when: cksum.rc != 0 or cksum.stdout != '1'
     shell: |
       set -o pipefail
-      md5sum /opt/versatushpc/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
+      md5sum {{ opencattus_path }}/xcat/ssh_host_{{ item }}_key /install/netboot/{{ el_variant | default("centos") }}{{ el_version }}/x86_64/compute/rootimg/etc/ssh/ssh_host_{{ item }}_key | cut -f1 -d' ' | sort -u | wc -l
     loop: "{{ ssh_key_types }}"
 
+  - block:
+    - name: Load nodes variables
+      include_vars:
+        file: nodes.yaml
+
+    # Creates a list of pairs [[nodename, keytype], [n,k], ...]
+    - name: Create list of (node x keys)
+      set_fact:
+        nodes_keys: "{{ nodes | length | nodes_names | product(ssh_key_types) | list }}"
+
+    - name: Check that filesystem and FreeIPA keys are the same
+      args:
+        executable: /bin/bash
+      loop: "{{ nodes_keys }}"
+      register: wc
+      failed_when: 'wc.rc != 0 or wc.stdout != "1" or ((wc.stderr|lower) is search("error"))'
+      changed_when: wc.rc == 0 and wc.stdout != "1"
+      shell: |
+        set -o pipefail
+        cat <(ssh-keygen -lf {{ opencattus_path }}/xcat/ssh_host_{{ item[1] }}_key.pub | cut -f2 -d' ') \
+            <(ipa host-show {{ item[0] }} --raw | sed 's/ssh-dss/ssh-dsa/' | grep -w {{ item[1] }} | cut -f4 -d' ') | \
+            sort -u | wc -l
+  # This check was merged but we didn't added
+  # the hostname to /etc/hosts so it's failing
+  # I'm not sure that adding this to /etc/hosts
+  # is the right thing to do, so I'm ignoring
+  # this error while we decide that to do
+  # https://bitbucket.versatushpc.com.br/projects/OPENCATTUS/repos/deployment/pull-requests/36/overview
+  #
+  # In fact PBS depends on this too
   - name: Check that headnode hostname is present in /etc/hosts
     changed_when: false
     shell: |
       grep -E '^{{ sms_ip }}\s+{{ fqdn }}\s+{{ cluster_name }}' /etc/hosts
+
+  - name: Check that image has postinstalls
+    shell: |
+      set -o pipefail
+      source /etc/profile.d/xcat.sh
+      lsdef -t osimage -o {{ genimage_name }} -i postinstall | sed 1d | cut -f2 -d= | grep opencattus
+    changed_when: false
+
+  - name: Grab postscripts from image
+    shell: |
+      set -o pipefail
+      source /etc/profile.d/xcat.sh
+      lsdef -t osimage -o {{ genimage_name }} -i postscripts | awk -F= '/postscripts/ { print $2 }'
+    register: postscripts
+    failed_when: postscripts.rc != 0 or postscripts.stdout == ""
+
+  - name: Set postscripts variable
+    set_fact:
+      postscripts: "{{ postscripts.stdout.split(',') | list }}"
+
+  - name: Check postscripts
+    assert:
+      that:
+        - "'opencattus/ipa-join' in postscripts"
+        - "'opencattus/freeipa-automount-compute' in postscripts"
+
+  # We expect DNS to be point to the internal IP. And name
+  # resolution to be working. So, nslookup {{ fqdn }}
+  # should return {{ sms_ip }} in Server, and Address lines.
+  #
+  # It's also expected that the name resolves only to
+  # {{ sms_ip }} address.
+  - name: Check that DNS is working, also check server and address IPs in DNS response
+    shell: |
+      set -o pipefail
+      nslookup {{ fqdn }} | grep -v '#53' | awk '/Address/ { print $2 }; /Server/ { print $2 }'
+    register: nslookup
+    failed_when: nslookup.stdout_lines | unique | length != 1 or nslookup.stdout_lines | unique | list != [sms_ip]
+    changed_when: false
 
   - name: Check that first node is booted
     shell: |
@@ -135,5 +194,5 @@
   - name: Check that automount is working
     shell: |
       set -o pipefail
-      ssh {{ 0 | node_name }} -- "mount | grep 172.26.255.254:/opt/ohpc/pub"
+      ssh {{ 0 | node_name }} -- "mount | grep {{ fqdn }}:/opt/ohpc/pub"
     changed_when: false
