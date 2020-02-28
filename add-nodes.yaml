@@ -1,0 +1,9 @@
+---
+- hosts: sms
+  gather_facts: no
+  pre_tasks:
+    - name: Gather package facts
+      package_facts:
+        manager: auto
+  tasks:
+    - include_tasks: roles/define-nodes/tasks/add-node.yaml

@@ -1,0 +1,130 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes-add.yaml
+
+- name: Check that nodes are defined
+  assert:
+    that:
+      - nodes is defined
+
+- name: Verify that nodes.yaml is correct for Slurm
+  when: queue_system == "slurm"
+  assert:
+    that:
+      - '"name" in {{ node }}'
+      - '"mac" in {{ node }}'
+      - '"ip" in {{ node }}'
+      - 'not service_network_enabled or "bmc" in {{ node }}'
+      - 'queue_system != "slurm" or "slurm" in {{ node }}'
+      - 'queue_system != "slurm" or "Sockets" in {{ node }}.slurm'
+      - 'queue_system != "slurm" or "CoresPerSocket" in {{ node }}.slurm'
+      - 'queue_system != "slurm" or "ThreadsPerCore" in {{ node }}.slurm'
+      - 'queue_system != "slurm" or "Sockets" in {{ node }}.slurm'
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: node
+
+
+- name: Define nodes
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  shell: |
+    set -o pipefail
+    source /etc/profile.d/xcat.sh
+    mkdef -f -t node \
+      {{ node.name }} \
+      ip={{ node.ip }} \
+      mac={{ node.mac }} \
+      {% if service_network_enabled is defined and service_network_enabled %}bmcusername={{ node.ipmi_user | default(ipmi_user) }} \
+      bmc={{ node.bmc }} \
+      bmcpassword={{ node.ipmi_password | default(ipmi_password) }}{% endif %} \
+      mgt=ipmi \
+      groups=compute,all \
+      netboot=xnba \
+      arch=x86_64 \
+      cons=ipmi serialport=0 serialspeed=115200
+      makehosts {{ node.name }}
+      makedhcp  {{ node.name }}
+
+- name: FreeIPA Create node
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  register: ipahostadd
+  # Member of host-groups: compute", "  Managed by: node001.cluster.example.com, headnode.cluster.example.com", "  Failed managedby: ", "    member host: headnode.cluster.example.com: This entry is already a member", "--
+  failed_when: ipahostadd.rc != 0 and ipahostadd.stdout is not search("This entry is already a member")
+  changed_when: ipahostadd.rc == 0 and ipahostadd.stdout is search("Number of members added 1")
+  shell: |
+      kinit admin <<< "{{ ipadm_password }}"
+      ipa host-add  --ip-address={{ node.ip }} {{ node.name }}.{{ domain_name }}
+      ipa host-add-managedby --hosts={{ fqdn }} {{ node.name }}.{{ domain_name }}
+
+- name: FreeIPA Create node keytab
+  shell: |
+    ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ node.name }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ node.name }}-krb5.keytab
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  tags:
+    - ipa-getkeytab
+
+- name: Add host key to node
+  shell: |
+    set -o pipefail
+    ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ node.name }}.{{ domain_name }}
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  register: ipahostmod
+  failed_when: ipahostmod.rc != 0 and ipahostmod.stderr is not search("no modifications to be performed")
+  changed_when: ipahostmod.rc == 0 or ipahostmod.stderr is not search("no modifications to be performed")
+
+- name: Configure Infiniband
+  when: ib_stack != "none"
+  include_tasks: roles/infiniband/tasks/setup-nodes.yaml
+
+- name: Add keytab to compute.synclist
+  lineinfile:
+    path: '{{ synclist }}'
+    create: yes
+    line: '{{ opencattus_path }}/etc/{{ node.name }}-krb5.keytab -> ({{ node.name }}) /etc/krb5.keytab'
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+
+- name: Create host group
+  shell: |
+    kinit admin <<< {{ ipadm_password }}
+    ipa hostgroup-add --desc="Compute Nodes" compute
+  register: ipahostgroupadd
+  failed_when:  ipahostgroupadd.rc != 0 and ipahostgroupadd.stderr is not search("already exists")
+  changed_when:  ipahostgroupadd.rc == 0 and ipahostgroupadd.stdout is not search("added")
+
+- name: Add host to hostgroup
+  shell: |
+    kinit admin <<< {{ ipadm_password }}
+    ipa hostgroup-add-member --hosts={{ node.name }}.{{ domain_name }} compute
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  register: ipahostgroupaddmember
+  failed_when:  ipahostgroupaddmember.rc != 0 and ipahostgroupaddmember.stdout is not search("This entry is already a member")
+  changed_when: ipahostgroupaddmember.rc == 0 or  ipahostgroupaddmember.stdout is search("Added hostgroup")
+
+- name: Get package facts
+  package_facts: manager=auto
+
+- name: Define hosts in PBS
+  when: "'pbspro-server-ohpc' in ansible_facts.packages"
+  include_tasks: roles/pbs/tasks/setup-nodes-new.yaml
+
+- name: Define hosts on Slurm
+  when: "'ohpc-slurm-server' in ansible_facts.packages"
+  include_tasks: roles/slurm/tasks/setup-nodes-new.yaml
+
+- name: Run nodeset on new nodes and update DHCP
+  shell: |
+    source /etc/profile.d/xcat.sh
+    nodeset {{ nodes | map(attribute='name') | join(",") }} osimage={{ genimage_name }}
+    makedhcp {{ nodes | map(attribute='name') | join(",") }}

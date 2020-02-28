@@ -1,0 +1,18 @@
+- name: Load nodes variables
+  include_vars:
+    file: nodes-add.yaml
+
+- name: Check that nodes are defined
+  assert:
+    that:
+      - nodes is defined
+
+- name: Define nodes in Slurm
+  loop: '{{ nodes }}'
+  loop_control:
+    loop_var: node
+  lineinfile:
+    line: 'NodeName={{ node.name }} Sockets={{ node.slurm.Sockets }} CoresPerSocket={{ node.slurm.CoresPerSocket }} ThreadsPerCore={{ node.slurm.ThreadsPerCore }} State=UNKNOWN'
+    state: present
+    dest: /etc/slurm/slurm.conf
+  notify: restart slurctld

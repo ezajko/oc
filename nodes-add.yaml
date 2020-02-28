@@ -1,0 +1,11 @@
+---
+nodes:
+  - name: node001
+    ip: 172.26.0.1
+    mac: '56:6f:90:d5:00:45'
+    ipmi_user: ADMIN
+    ipmi_password: admin
+    slurm:
+      Sockets: 1
+      CoresPerSocket: 1
+      ThreadsPerCore: 1
