@@ -1,12 +1,12 @@
-- name: Create /opt/versatushpc/etc directory
+- name: Create OpenCATTUS directories
   file:
     state: directory
-    path: /opt/versatushpc/etc
+    path: "{{ opencattus_path }}/etc"
     mode: '0755'
 
 - name: Create versatushpc-release file
   copy:
-    dest: /opt/versatushpc/etc/release
+    dest: "{{ opencattus_path }}/etc/release"
     content: |
       RELEASE=0.1-DEVELOPMENT
       VENDOR=

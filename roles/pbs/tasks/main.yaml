@@ -28,6 +28,8 @@
     - ohpc-base-compute
     - lmod-ohpc
     - pbspro-execution-ohpc
+  tags:
+    - pkglist
 
 - name: Leafname at pbs.conf
   lineinfile:
@@ -36,9 +38,10 @@
 
 - name: Create postinstall for PBS
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/pbs
+    dest: "{{ opencattus_path }}/xcat/postinstall/pbs"
     mode: '0755'
     content: |
+      echo "=======> Post install $0 started"
       perl -pi -e "s/PBS_SERVER=\S+.*$/PBS_SERVER=`hostname -f`/" $IMG_ROOTIMGDIR/etc/pbs.conf
       perl -pi -e "s/\$clienthost \S+.*$/\$clienthost `hostname -f`/" $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
       sed -i -e "/\$usecp `hostname -f`/d"  $IMG_ROOTIMGDIR/var/spool/pbs/mom_priv/config
@@ -52,4 +55,4 @@
 - name: Add postinstall
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/pbs
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/pbs

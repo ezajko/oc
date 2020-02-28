@@ -5,3 +5,5 @@
     sed -i 's/remoteshell\,//' postscripts.csv
     tabrestore postscripts.csv
     rm -rf postscripts.csv
+  tags:
+    - postscripts

@@ -43,7 +43,7 @@
 - name:  Install the packages
   shell: |
     /root/install-tl*/install-tl --profile /root/texlive.profile
-    /usr/local/texlive/2019/bin/x86_64-linux/tlmgr update self
+    /usr/local/texlive/2019/bin/x86_64-linux/tlmgr update --self
 
 - name: Remove the unneeded packages left on filesystem
   shell: |

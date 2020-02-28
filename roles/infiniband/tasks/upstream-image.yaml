@@ -5,3 +5,6 @@
   loop:
     - "@Infiniband Support"
     - infinipath-psm
+  tags:
+    - pkglist
+

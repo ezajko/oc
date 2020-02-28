@@ -30,6 +30,10 @@
   shell: |
     nmcli c mod {{ sms_eth_internal }} ipv4.method manual
 
+- name: Disable external DHCP DNS 
+  shell: |
+    nmcli con mod {{ sms_eth_external }} ipv4.ignore-auto-dns yes
+
 - name: Reload connection
   shell: nmcli c down {{ sms_eth_internal }} && nmcli c up {{ sms_eth_internal }}
   retries: 5

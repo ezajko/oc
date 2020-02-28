@@ -11,10 +11,17 @@
       127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
       ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 
+  # FreeIPA and PBS needs this
+  # https://bamboo.versatushpc.com.br/browse/DEPLOYPLAN-PLAYBOOKPBS23-JOB1-19/test/case/9112049
+- name: Add hostname to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ sms_ip }}\t{{ fqdn }}\t{{ cluster_name }}"
 # - name: Enable CentOS Vault
 #   include_role:
 #     name: centos-vault
 #   when: ansible_facts.distribution == "CentOS"
+- import_tasks: mirror-blacklist.yaml
 - import_tasks: yum-update.yaml
 - import_tasks: repos/epel.yaml
 - import_tasks: repos/mellanox.yaml

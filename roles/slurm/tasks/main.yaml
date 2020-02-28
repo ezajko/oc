@@ -149,12 +149,18 @@
     line: ohpc-slurm-client
     path: "{{ pkglist }}"
     state: present
+  tags:
+    - pkglist
 
 - name:  Create postinstall script
+  tags:
+    - postinstall
   copy:
-    dest: /opt/versatushpc/xcat/postinstall/slurm
+    dest: "{{ opencattus_path }}/xcat/postinstall/slurm"
     mode: "0755"
     content: |
+      /bin/bash -xeu
+      echo "=======> Post install $0 started"
       if [ ! -f $IMG_ROOTIMGDIR/etc/systemd/system/slurmd.service ]; then
           cp $IMG_ROOTIMGDIR/usr/lib/systemd/system/slurmd.service $IMG_ROOTIMGDIR/etc/systemd/system/
           sed -e "/\[Unit\]/a\StartLimitBurst=5\nStartLimitIntervalSec=3" \
@@ -173,6 +179,8 @@
 
 
 - name: Add posinstall to the image
+  tags:
+    - postinstall
   shell: |
     source /etc/profile.d/xcat.sh
-    chdef -t osimage -o {{ genimage_name }} -p postinstall=/opt/versatushpc/xcat/postinstall/slurm
+    chdef -t osimage -o {{ genimage_name }} -p postinstall={{ opencattus_path }}/xcat/postinstall/slurm
