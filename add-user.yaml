@@ -1,0 +1,25 @@
+- hosts: sms
+  gather_facts: no
+  vars_prompt:
+    - prompt: User name
+      private: no
+      name: user
+
+    - prompt: User first name
+      private: no
+      name: first
+
+    - prompt: User last name
+      private: no
+      name: last
+
+    - prompt: User password
+      private: yes
+      name: password
+  tasks:
+    - name: Add user
+      shell: |
+        ipa user-add --first="{{ first }}" --last="{{ last }}" --password "{{ user }}" <<< "{{ password }}"
+      register: useradd
+      failed_when: useradd.rc != 0 and useradd.stderr is not search("already exists")
+      changed_when: useradd.rc == 0 and useradd.stderr is not search("already exists")

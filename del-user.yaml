@@ -1,0 +1,13 @@
+- hosts: sms
+  gather_facts: no
+  vars_prompt:
+    - prompt: User name
+      private: no
+      name: user
+  tasks:
+    - name: Add user
+      shell: |
+        ipa user-del "{{ user }}"
+      register: userdel
+      failed_when: userdel.rc != 0 and userdel.stderr is not search("user not found")
+      changed_when: userdel.rc == 0 and userdel.stderr is not search("user not found")
