@@ -28,3 +28,4 @@ sms_network_ip_start: 172.26.0.1
 timezone: America/Sao_Paulo
 xcat_dhcp_dynamicrange: 172.26.192.0-172.26.192.255
 gui_enabled: yes
+ipaserver_no_dnssec_validation: false

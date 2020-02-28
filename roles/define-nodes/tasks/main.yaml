@@ -167,10 +167,12 @@
     genimage {{ genimage_name }}
     packimage {{ genimage_name }}
   register: genimage
+  tags:
+    - genimage
   failed_when: genimage.rc != 0 or (genimage.stderr | lower) is search("error")
   retries: 3
   poll: 300
-  async: 3600 
+  async: 3600
 
 - name: Run nodeset on new nodes
   shell: |
