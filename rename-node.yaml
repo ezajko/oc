@@ -13,12 +13,17 @@
       name: new_ip
       private: no
 
+    - prompt: New BMC (left blank to not change BMC IP)
+      name: new_bmc_ip
+      private: no
+
   tasks:
     - name: Check that {{ old }} exists
       shell: |
         set -o pipefail
         source /etc/profile.d/xcat.sh
         nodels {{ old }}
+      changed_when: no
 
     - name: Check that {{ new }} does not exists
       shell: |
@@ -26,106 +31,140 @@
         source /etc/profile.d/xcat.sh
         nodels {{ new }}
       register: nodels
+      changed_when: no
       failed_when: nodels.rc == 0
 
-    - name: Rename node on xCAT
-      shell: |
-        set -o pipefail
-        source /etc/profile.d/xcat.sh
-        lsdef -t node -z {{ old }} > /tmp/{{ new }}.txt
-        sed -e 's/^{{ old }}/{{ new }}/' -i /tmp/{{ new }}.txt
-        if [ -n "{{ new_ip }}" ]; then
-          sed -e 's/ip=.*/ip={{ new_ip }}/' -i /tmp/{{ new }}.txt
-        fi
-        chdef -z < /tmp/{{ new }}.txt
-        rmdef {{ old }}
-        makedhcp -d {{ old }}
-        makedhcp {{ new }}
+    - block:
+        - name: Rename node on xCAT {{ old }} -> {{ new }}
+          shell: |
+            set -o pipefail
+            source /etc/profile.d/xcat.sh
+            lsdef -t node -z {{ old }} > /tmp/{{ new }}.txt
+            sed -e 's/^{{ old }}/{{ new }}/' -i /tmp/{{ new }}.txt
+            if [ -n "{{ new_ip }}" ]; then
+              sed -e 's/ip=.*/ip={{ new_ip }}/' -i /tmp/{{ new }}.txt
+            fi
+            if [ -n "{{ new_bmc_ip }}" ] && [ grep -q bmc= /tmp/{{ new }}.txt ]; then
+              sed -e 's/bmc=.*/bmc={{ new_bmc_ip }}/' -i /tmp/{{ new }}.txt
+            fi
+            chdef -z < /tmp/{{ new }}.txt
+            rm /tmp/{{ new }}.txt
 
-    - name: Rename keytab from compute.synclist
-      lineinfile:
-        state: present
-        path: "{{ synclist }}"
-        regex: "{{ opencattus_path }}/etc/{{ old }}-krb5.keytab -> ({{ old }}) /etc/krb5.keytab"
-        line: "{{ opencattus_path }}/etc/{{ new }}-krb5.keytab -> ({{ new }}) /etc/krb5.keytab"
+            nodepurge {{ old }}
 
-    - name: Rename nodes in Slurm
-      when: queue_system == "slurm"
-      lineinfile:
-        regex: '^NodeName={{ old }}'
-        line: '^NodeName={{ new }}'
-        state: present
-        dest: /etc/slurm/slurm.conf
+            makedhcp -d {{ old }}
+            makedhcp {{ new }}
 
-    - name: Rename nodes in PBS
-      when: queue_system == "pbs"
-      shell: |
-        source /etc/profile.d/pbs.sh
-        qmgr -c "delete node {{ old }}"
-        qmgr -c "create node {{ new }}"
+            nodeset {{ new }} osimage={{ genimage_name }}
 
-    # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/linux_domain_identity_authentication_and_policy_guide/client-renaming-machines
-    - name: Remove node on FreeIPA
-      shell: |
-        ipa-rmkeytab -k {{ opencattus_path }}/etc/{{ new }}-krb5.keytab
-        ipa hostgroup-del compute {{ old }}.{{ domain_name }}
-        ipa host-del {{ old }}.{{ domain_name }} --updatedns
-      register: hostgroup
-      failed_when: 'hostgroup.rc != 0 and (hostgroup.stdout | regex_search("(host (group)? not found)", multiline=True) == "")'
-      changed_when: 'hostgroup.rc == 0 and (hostgroup.stdout | regex_search("(host (group)? not found)", multiline=True) != "")'
+        # regexp is not working here, ansible bug?
+        - name: Add {{ new }} keytab from compute.synclist
+          lineinfile:
+            state: present
+            path: "{{ synclist }}"
+            line: "{{ opencattus_path }}/etc/{{ new }}-krb5.keytab -> ({{ new }}) /etc/krb5.keytab"
 
-    - name: Get node IP
-      shell: |
-        set -o pipefail
-        source /etc/profile.d/xcat.sh
-        lsdef {{ new }} -i ip | sed 1d | cut -f2 -d=
-      register: ip
+        - name: Remove {{ old }} keytab from compute.synclist
+          lineinfile:
+            state: absent
+            path: "{{ synclist }}"
+            line: "{{ opencattus_path }}/etc/{{ old }}-krb5.keytab -> ({{ old }}) /etc/krb5.keytab"
 
-      # - name: Remove DNS records
-      #   when: not ip.failed
-      #   shell: |
-      #     ipa dnsrecord-del --del-all {{ domain_name }} {{ old }}
-      #     ipa dnsrecord-del {{ ip.stdout | reverse_name }} --ptr-rec={{ old }}.{{ domain_name }}.
+        - name: Rename nodes in Slurm
+          when: queue_system == "slurm"
+          replace:
+            path: /etc/slurm/slurm.conf
+            # Ansible uses MULTILINE so ^ matches the beginning of
+            # file not the beginning of line. I use \n instead
+            regexp: 'NodeName={{ old }}(.*)'
+            replace: 'NodeName={{ new }}\1'
 
-    - name: FreeIPA Create node
-      register: ipahostadd
-      # Member of host-groups: compute", "  Managed by: node001.cluster.example.com, headnode.cluster.example.com", "  Failed managedby: ", "    member host: headnode.cluster.example.com: This entry is already a member", "--
-      failed_when: ipahostadd.rc != 0 and ipahostadd.stdout is not search("This entry is already a member")
-      changed_when: ipahostadd.rc == 0 and ipahostadd.stdout is search("Number of members added 1")
-      shell: |
-        ipa host-add  --ip-address={{ ip.stdout }} --update-dns {{ new }}.{{ domain_name }}
-        ipa host-add-managedby --hosts={{ fqdn }} {{ new }}.{{ domain_name }}
+        - name: Rename nodes in PBS
+          when: queue_system == "pbs"
+          shell: |
+            source /etc/profile.d/pbs.sh
+            qmgr -c "delete node {{ old }}"
+            qmgr -c "create node {{ new }}"
 
-    - name: FreeIPA Create node keytab
-      shell: |
-        ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ new }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ new }}-krb5.keytab
+        # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/linux_domain_identity_authentication_and_policy_guide/client-renaming-machines
+        - name: Remove {{ old }} from FreeIPA
+          shell: |
+            ipa-rmkeytab -k {{ opencattus_path }}/etc/{{ new }}-krb5.keytab
+            ipa hostgroup-del compute {{ old }}.{{ domain_name }}
+            ipa host-del {{ old }}.{{ domain_name }} --updatedns
+          register: hostgroup
+          failed_when: 'hostgroup.rc != 0 and (hostgroup.stdout | regex_search("(host (group)? not found)", multiline=True) == "")'
+          changed_when: 'hostgroup.rc == 0 and (hostgroup.stdout | regex_search("(host (group)? not found)", multiline=True) != "")'
 
-    - name: Add host key to node
-      shell: |
-        set -o pipefail
-        ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ new }}.{{ domain_name }}
-      loop: '{{ nodes }}'
-      loop_control:
-        loop_var: node
-      register: ipahostmod
-      failed_when: ipahostmod.rc != 0 and ipahostmod.stderr is not search("no modifications to be performed")
-      changed_when: ipahostmod.rc == 0 or ipahostmod.stderr is not search("no modifications to be performed")
+        - name: Get {{ new }} IP
+          shell: |
+            set -o pipefail
+            source /etc/profile.d/xcat.sh
+            lsdef {{ new }} -i ip | sed 1d | cut -f2 -d=
+          register: ip
 
-    - name: Create host group
-      shell: |
-        kinit admin <<< {{ ipadm_password }}
-        ipa hostgroup-add --desc="Compute Nodes" compute
-      register: ipahostgroupadd
-      failed_when:  ipahostgroupadd.rc != 0 and ipahostgroupadd.stderr is not search("already exists")
-      changed_when:  ipahostgroupadd.rc == 0 and ipahostgroupadd.stdout is not search("added")
+          # - name: Remove DNS records
+          #   when: not ip.failed
+          #   shell: |
+          #     ipa dnsrecord-del --del-all {{ domain_name }} {{ old }}
+          #     ipa dnsrecord-del {{ ip.stdout | reverse_name }} --ptr-rec={{ old }}.{{ domain_name }}.
 
-    - name: Add host to hostgroup
-      shell: |
-        kinit admin <<< {{ ipadm_password }}
-        ipa hostgroup-add-member --hosts={{ new }}.{{ domain_name }} compute
-      loop: '{{ nodes }}'
-      loop_control:
-        loop_var: node
-      register: ipahostgroupaddmember
-      failed_when:  ipahostgroupaddmember.rc != 0 and ipahostgroupaddmember.stdout is not search("This entry is already a member")
-      changed_when: ipahostgroupaddmember.rc == 0 or  ipahostgroupaddmember.stdout is search("Added hostgroup")
+        - name: FreeIPA create {{ new }} host
+          register: ipahostadd
+          failed_when: ipahostadd.rc != 0 and ipahostadd.stdout is not search("This entry is already a member")
+          changed_when: ipahostadd.rc == 0 and ipahostadd.stdout is search("Number of members added 1")
+          shell: |
+            kinit admin <<< {{ ipadm_password }}
+            ipa host-add  --ip-address={{ ip.stdout }} {{ new }}.{{ domain_name }}
+            ipa host-add-managedby --hosts={{ fqdn }} {{ new }}.{{ domain_name }}
+
+        - name: FreeIPA remove {{ old }} keytab
+          file:
+            state: absent
+            path: "{{ opencattus_path }}/etc/{{ old }}-krb5.keytab"
+
+        - name: FreeIPA Create {{ new }} keytab
+          shell: |
+            ipa-getkeytab -s {{ fqdn }} -D "cn=Directory Manager" -w {{ ipadm_password }} -p host/{{ new }}.{{ domain_name }} -k {{ opencattus_path }}/etc/{{ new }}-krb5.keytab
+          args:
+            creates: "{{ opencattus_path }}/etc/{{ new }}-krb5.keytab"
+
+        - name: Add SSH host key to {{ new }} on FreeIPA
+          shell: |
+            set -o pipefail
+            ipa host-mod $(cat {{ opencattus_path }}/xcat/ssh_host_*.pub | awk '{ print $2 }' | xargs -n1 -I% echo --sshpubkey=\'%\' | paste -s) --updatedns {{ new }}.{{ domain_name }}
+          register: ipahostmod
+          failed_when: ipahostmod.rc != 0 and ipahostmod.stderr is not search("no modifications to be performed")
+          changed_when: ipahostmod.rc == 0 or ipahostmod.stderr is not search("no modifications to be performed")
+
+        - name: Create compute host group
+          shell: |
+            kinit admin <<< {{ ipadm_password }}
+            ipa hostgroup-add --desc="Compute Nodes" compute
+          register: ipahostgroupadd
+          failed_when:  ipahostgroupadd.rc != 0 and ipahostgroupadd.stderr is not search("already exists")
+          changed_when:  ipahostgroupadd.rc == 0 and ipahostgroupadd.stdout is not search("added")
+
+        - name: Add {{ new }} to hostgroup
+          shell: |
+            kinit admin <<< {{ ipadm_password }}
+            ipa hostgroup-add-member --hosts={{ new }}.{{ domain_name }} compute
+          register: ipahostgroupaddmember
+          failed_when:  ipahostgroupaddmember.rc != 0 and ipahostgroupaddmember.stdout is not search("This entry is already a member")
+          changed_when: ipahostgroupaddmember.rc == 0 or  ipahostgroupaddmember.stdout is search("Added hostgroup")
+
+      rescue:
+        - name: Restore node on xCAT on failure
+          shell: |
+            set -o pipefail
+            source /etc/profile.d/xcat.sh
+            lsdef -t node -z {{ new }} > /tmp/{{ old }}.txt
+            sed -e 's/^{{ new }}/{{ old }}/' -i /tmp/{{ old }}.txt
+            if [ -n "{{ old_ip }}" ]; then
+              sed -e 's/ip=.*/ip={{ old_ip }}/' -i /tmp/{{ old }}.txt
+            fi
+            chdef -z < /tmp/{{ old }}.txt
+            rmdef {{ new }}
+            makedhcp -d {{ new }}
+            makedhcp {{ old }}
+
