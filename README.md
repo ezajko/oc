@@ -69,6 +69,36 @@ git submodule update
 
 `ansible -m include_tasks -a 'roles/xcat/tasks/install.yaml' sms -e @answers-...yaml`
 
+# Common tasks
+
+## Adding new node
+
+* Edit nodes-new.yaml
+* Run `ansible-playbook add-nodes.yaml -e @answers-<date>.yaml`
+
+## Removing a node
+
+* Run `ansible-playbook del-node.yaml -e  @answers-<date>.yaml -e node=<node_name>`
+
+## Renaming a node
+
+* Run `ansible-playbook rename-node.yaml -e @answers-<date>.yaml` and answer
+  the questions. Since renaming is not imdepotent is important to not interrupt
+  this playbook, otherwise it will left the node in a unrecoverable state. In
+  this case the best option is to remove both, new and old node and add the new
+  node.
+
+## Adding new user
+
+* Run `ansible-playbook add-user -e @answers-<date>.yaml` and answer the
+  questions. You can avoid the questions by using `-e <option>=<value>` where
+  options are, `user` for user name, `first` for first name, `last` for last
+  name and `password` for password.
+
+## Remove user
+
+* Run `ansible-playbook del-user -e @answers-<date>.yaml` and provide the username or use `-e user=<username>`
+
 # Questions
 |name|prompt|default|choices|help|
 |---|---|---|---|---|

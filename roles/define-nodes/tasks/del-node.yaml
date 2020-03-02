@@ -56,7 +56,7 @@
 - name: Remove host from xCAT
   shell: |
     source /etc/profile.d/xcat.sh
-    rmdef {{ node }}
+    nodepurge {{ node }}
   register: rmdef
   failed_when: 'rmdef.rc != 0 and rmdef.stderr is not search("Could not find an object named")'
   changed_when: 'rmdef.rc == 0 and rmdef.stdout is not search("No objects have been removed from the xCAT database")'
