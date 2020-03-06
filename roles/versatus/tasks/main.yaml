@@ -20,6 +20,7 @@
       NOTES=
 
 - name: Add VersatusHPC IP address as allowed on public firewall zone
+  when: versatushpc_access_enabled
   firewalld:
     zone: public
     source: "{{ versatus_hpc_ip }}"
@@ -43,6 +44,7 @@
     mode: '0755'
 
 - name: Create authorized_keys
+  when: versatushpc_access_enabled
   lineinfile:
     path: /root/.ssh/authorized_keys
     mode: '0700'
