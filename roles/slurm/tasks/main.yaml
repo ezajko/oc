@@ -16,6 +16,7 @@
     name:
       - ohpc-slurm-server
       - slurm-slurmdbd-ohpc
+      - slurm-libpmi-ohpc
 
 - name: Configure ClusterName settings in slurm.conf
   lineinfile:
