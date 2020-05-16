@@ -1,0 +1,68 @@
+- name: Gather the rpm package facts
+  package_facts:
+    manager: auto
+
+- name: Print the rpm package facts
+  debug:
+    var: ansible_facts.packages
+
+- name: Check that dependences are installed
+  assert:
+    that:
+      - "'slurm-ohpc' in ansible_facts.packages"
+      - "'slurm-devel-ohpc' in ansible_facts.packages"
+      - "'slurm-libpmi-ohpc' in ansible_facts.packages"
+
+- name: Create folders
+  file:
+    state: directory
+    mode: '0755'
+    path: '/opt/ohpc/pub/apps/slurm/{{ item }}'
+  loop:
+    - lib/pkgconfig
+    - include
+
+- name: Gather libraries paths
+  shell: rpm -ql slurm-ohpc | egrep '.*\.so.*'
+  register: libraries_paths
+
+- name: Create symlinks
+  file:
+    state: link
+    src: '{{ item }}'
+    dest: '/opt/ohpc/pub/apps/slurm/lib/{{ item.split("/")[-1] }}'
+  loop: '{{ libraries_paths.stdout_lines }}'
+
+- name: Gather libraries paths
+  shell: rpm -ql slurm-libpmi-ohpc | egrep '.*\.so.*'
+  register: libraries_paths
+
+- name: Create symlinks
+  file:
+    state: link
+    src: '{{ item }}'
+    dest: '/opt/ohpc/pub/apps/slurm/lib/{{ item.split("/")[-1] }}'
+  loop: '{{ libraries_paths.stdout_lines }}'
+
+- name: Create symlink for pkgconfig
+  file:
+    state: link
+    src: /usr/lib64/pkgconfig/slurm.pc
+    dest: /opt/ohpc/pub/apps/slurm/lib/pkgconfig/slurm.pc
+
+- name: 'Check for "packages:" in packages file on Spack'
+  lineinfile:
+    path: /root/.spack/linux/packages.yaml
+    line: 'packages:'
+    create: yes
+
+- name: Create external package on Spack
+  blockinfile:
+    path: /root/.spack/linux/packages.yaml
+    insertafter: '^packages:'
+    # |2 is needed for the identation to work
+    block: |2
+        slurm:
+          paths:
+            slurm: /opt/ohpc/pub/apps/slurm
+          buildable: False

@@ -62,5 +62,6 @@
     ipa automountkey-add compute auto.spack --key="*" --info="-fstype=nfs {{ fqdn }}:/opt/spack/&"
     ipa automountlocation-tofiles compute
 
-
-
+- name: Fix Slurm libraries linking
+  include_tasks: fix-spack-slurm-linking.yaml
+  when: 'el_major_version == 7 and queue_system == "slurm"'
